@@ -1,0 +1,33 @@
+.section-page {
+  padding: 3rem 1.3rem 4rem;
+}
+
+.section-page .section-shell {
+  width: min(860px, 100%);
+  margin: 0 auto;
+}
+
+.section-label {
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.section-page h1 {
+  margin: 0 0 1rem;
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: #1f2530;
+  line-height: 1.1;
+}
+
+.section-page p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 60ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
