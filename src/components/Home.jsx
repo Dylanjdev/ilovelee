@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import logo from '../assets/logo.png'
 import leecobridge from '../assets/leecobridge.webp'
 import whiterock from '../assets/whiterock.webp'
@@ -7,6 +8,8 @@ import ceaderhill from '../assets/ceaderhill.webp'
 import leethee from '../assets/leethee.mp4'
 import stone from '../assets/stone.webp'
 import cgap from '../assets/cgap.webp'
+import keeokee from '../assets/keeokee.webp'
+import coal from '../assets/coal.webp'
 import justoff from '../assets/justoff.avif'
 import wilder from '../assets/wilder.webp'
 import ilovelee from '../assets/ilovelee.avif'
@@ -71,8 +74,24 @@ const destinations = [
 		link: 'https://www.nps.gov/cuga/index.htm',
 		detail: 'Regional heritage and iconic mountain passages.',
 	},
-	
+	{
+		name: 'Lake Keokee Loop',
+		location: 'Keokee, Lee County',
+		image: keeokee,
+		link: 'https://dwr.virginia.gov/waterbody/lake-keokee/#overview',
+		detail: 'Circle a 92-acre mountain lake on a 3.7-mile loop used for hiking, fishing, picnics, and wildlife watching. The area includes a paved launch ramp and fishing for largemouth bass, bluegill, redear sunfish, and channel catfish.',
+	},
+	{
+		name: 'Lee County Coal Heritage Memorial',
+		location: 'Lee County, Virginia',
+		image: coal,
+		imageFit: 'contain',
+		link: 'https://share.google/4RzK5GOlDctjm3K2Z',
+		detail: 'A simple, meaningful memorial honoring Lee County coal heritage and the hardworking men, women, and children whose labor shaped Central Appalachia. It also remembers those who were lost while providing for their families.',
+	},
 ]
+
+const initialDestinationCount = 7
 
 const partnerLogos = [
 	{ image: leeco1, alt: 'Lee County tourism partner logo 1' },
@@ -84,6 +103,11 @@ const partnerLogos = [
 ]
 
 function Home() {
+	const [showMoreDestinations, setShowMoreDestinations] = useState(false)
+	const visibleDestinations = showMoreDestinations
+		? destinations
+		: destinations.slice(0, initialDestinationCount)
+
 	return (
 		<div className="home-page">
 			<section className="hero-band reveal">
@@ -141,14 +165,15 @@ function Home() {
 				</div>
 
 				<div className="destination-list">
-					{destinations.map((destination, i) => (
+					{visibleDestinations.map((destination, i) => (
 						(() => {
 							const isVideo = typeof destination.image === 'string' && destination.image.toLowerCase().includes('.mp4')
+							const isNewCard = showMoreDestinations && i >= initialDestinationCount
 
 							return (
 								<div
 									key={destination.name}
-									className="dest-wrap reveal"
+									className={`dest-wrap reveal${isNewCard ? ' dest-new-card' : ''}`}
 									style={{ animationDelay: `${i * 0.06}s` }}
 								>
 									<div className="dest-overlay">
@@ -168,7 +193,7 @@ function Home() {
 											/>
 										) : (
 											<div
-												className="dest-image"
+												className={`dest-image${destination.imageFit === 'contain' ? ' dest-image-contain' : ''}`}
 												style={{ backgroundImage: `url(${destination.image ?? logo})` }}
 												aria-hidden="true"
 											/>
@@ -191,9 +216,11 @@ function Home() {
 							)
 						})()
 					))}
-					<div className="dest-view-more reveal">
-						<button type="button">View More</button>
-					</div>
+					{!showMoreDestinations && (
+						<div className="dest-view-more reveal">
+							<button type="button" onClick={() => setShowMoreDestinations(true)}>View More</button>
+						</div>
+					)}
 				</div>
 			</section>
 
@@ -317,7 +344,19 @@ function Home() {
 			<footer className="page-footer">
 				<div className="section-shell footer-inner">
 					<p>Lee County Tourism</p>
-					<a href="#top">Back to Top</a>
+					<div className="footer-links">
+						<a
+							className="facebook-link"
+							href="https://www.facebook.com/iloveleevirginia"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Follow I Love Lee Virginia on Facebook"
+						>
+							<span className="facebook-mark" aria-hidden="true">f</span>
+							<span>Facebook</span>
+						</a>
+						<a href="#top">Back to Top</a>
+					</div>
 				</div>
 			</footer>
 		</div>

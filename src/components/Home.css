@@ -287,7 +287,7 @@
 
 .dest-wrap {
   position: relative;
-  height: 260px;
+  height: 300px;
   background: #ffffff;
   border: 1px solid #d9ded5;
   box-shadow: 0 18px 40px rgba(31, 37, 48, 0.08);
@@ -297,7 +297,7 @@
 
 .dest-view-more {
   grid-column: span 2;
-  min-height: 260px;
+  min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,16 +319,35 @@
   font-weight: 700;
   background: transparent;
   border: 2px solid rgba(243, 210, 138, 0.72);
-  cursor: default;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .dest-view-more button:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: #f3d28a;
+  transform: translateY(-2px);
 }
 
 .dest-wrap:hover {
   transform: translateY(-4px);
   box-shadow: 0 24px 54px rgba(31, 37, 48, 0.13);
+}
+
+.dest-new-card {
+  animation: destination-card-in 0.52s ease both;
+}
+
+@keyframes destination-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .dest-overlay {
@@ -375,6 +394,12 @@
   transition: width 0.35s ease-in-out;
 }
 
+.dest-image-contain {
+  background-color: #f4f1e8;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
 .dest-dots {
   position: absolute;
   bottom: 0.9rem;
@@ -402,9 +427,9 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.42rem;
-  padding: 1.25rem;
+  justify-content: flex-start;
+  gap: 0.36rem;
+  padding: 1rem;
   background: #ffffff;
   overflow-y: auto;
 }
@@ -420,8 +445,8 @@
 .dest-text p {
   margin: 0;
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-size: 0.84rem;
+  line-height: 1.42;
 }
 
 .dest-region {
@@ -606,10 +631,9 @@
 
 .contact-image {
   min-height: 100%;
-  background: #ffffff;
-  border: 1px solid #d9ded5;
-  box-shadow: 0 14px 30px rgba(31, 37, 48, 0.06);
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .contact-image img {
@@ -617,7 +641,7 @@
   height: 100%;
   min-height: 220px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .contact-grid {
@@ -695,10 +719,38 @@ a.partner-badge:focus-visible {
   font-weight: 700;
 }
 
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .page-footer a {
   text-decoration: none;
   color: #f3d28a;
   font-weight: 700;
+}
+
+.facebook-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.facebook-mark {
+  display: inline-flex;
+  width: 1.85rem;
+  height: 1.85rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1877f2;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.42rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .hero-cta a:focus-visible,
