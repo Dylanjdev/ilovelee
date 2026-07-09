@@ -1,24 +1,24 @@
-import { useState } from 'react'
-import logo from '../assets/logo.png'
+import { useEffect, useState } from 'react'
+import logo from '../assets/logo.webp'
 import leecobridge from '../assets/leecobridge.webp'
 import whiterock from '../assets/whiterock.webp'
 import sandcaves from '../assets/sandcavee.webp'
 import stoneface from '../assets/stoneface.webp'
 import ceaderhill from '../assets/ceaderhill.webp'
-import leethee from '../assets/leethee.mp4'
+import leeTheatre from '../assets/LeeThee.webp'
 import stone from '../assets/stone.webp'
 import cgap from '../assets/cgap.webp'
 import keeokee from '../assets/keeokee.webp'
 import coal from '../assets/coal.webp'
-import justoff from '../assets/justoff.avif'
+import justoff from '../assets/justoff.webp'
 import wilder from '../assets/wilder.webp'
-import ilovelee from '../assets/ilovelee.avif'
-import leeco1 from '../assets/leeco1.avif'
-import leeco2 from '../assets/leeco2.avif'
-import leeco3 from '../assets/leeco3.avif'
-import leeco4 from '../assets/leeco4.avif'
-import leeco5 from '../assets/leeco5.avif'
-import leeco6 from '../assets/leeco6.avif'
+import ilovelee from '../assets/ilovelee.webp'
+import leeco1 from '../assets/leeco1.webp'
+import leeco2 from '../assets/leeco2.webp'
+import leeco3 from '../assets/leeco3.webp'
+import leeco4 from '../assets/leeco4.webp'
+import leeco5 from '../assets/leeco5.webp'
+import leeco6 from '../assets/leeco6.webp'
 import visitorGuidePdf from '../assets/Lee County Virginia.pdf'
 import './Home.css'
 
@@ -45,13 +45,6 @@ const destinations = [
 		image: stoneface,
 		link: 'https://share.google/FEZySf93tEm87VOsd',
 		detail: 'A signature landmark known for dramatic scenery.',
-	},
-	{
-		name: 'Lee Theatre',
-		location: 'Pennington Gap, Lee County',
-		image: leethee,
-		link: 'https://www.leetheatre.org/',
-		detail: 'Community entertainment in a historic downtown setting.',
 	},
 	{
 		name: 'Cedar Hill Country Club',
@@ -82,6 +75,13 @@ const destinations = [
 		detail: 'Circle a 92-acre mountain lake on a 3.7-mile loop used for hiking, fishing, picnics, and wildlife watching. The area includes a paved launch ramp and fishing for largemouth bass, bluegill, redear sunfish, and channel catfish.',
 	},
 	{
+		name: 'Lee Theatre',
+		location: 'Pennington Gap, Lee County',
+		image: leeTheatre,
+		link: 'https://www.leetheatre.org/',
+		detail: 'Community entertainment in a historic downtown setting.',
+	},
+	{
 		name: 'Lee County Coal Heritage Memorial',
 		location: 'Lee County, Virginia',
 		image: coal,
@@ -91,7 +91,7 @@ const destinations = [
 	},
 ]
 
-const initialDestinationCount = 7
+const initialDestinationCount = 6
 
 const partnerLogos = [
 	{ image: leeco1, alt: 'Lee County tourism partner logo 1' },
@@ -104,13 +104,33 @@ const partnerLogos = [
 
 function Home() {
 	const [showMoreDestinations, setShowMoreDestinations] = useState(false)
+	const [loadDeferredMedia, setLoadDeferredMedia] = useState(false)
 	const visibleDestinations = showMoreDestinations
 		? destinations
 		: destinations.slice(0, initialDestinationCount)
 
+	useEffect(() => {
+		let timeoutId
+
+		const scheduleMedia = () => {
+			timeoutId = window.setTimeout(() => setLoadDeferredMedia(true), 450)
+		}
+
+		if (document.readyState === 'complete') {
+			scheduleMedia()
+		} else {
+			window.addEventListener('load', scheduleMedia, { once: true })
+		}
+
+		return () => {
+			window.removeEventListener('load', scheduleMedia)
+			window.clearTimeout(timeoutId)
+		}
+	}, [])
+
 	return (
 		<div className="home-page">
-			<section className="hero-band reveal">
+			<section className="hero-band">
 				<div className="section-shell hero-layout">
 					<div className="hero-content">
 						<p className="hero-label">Welcome to Lee County, Virginia</p>
@@ -129,8 +149,11 @@ function Home() {
 						<img
 							src={leecobridge}
 							alt="Scenic bridge in Lee County, Virginia"
+							width="500"
+							height="335"
 							decoding="async"
 							fetchPriority="high"
+							loading="eager"
 						/>
 						<div className="hero-card">
 							<p>Trip notes</p>
@@ -167,7 +190,6 @@ function Home() {
 				<div className="destination-list">
 					{visibleDestinations.map((destination, i) => (
 						(() => {
-							const isVideo = typeof destination.image === 'string' && destination.image.toLowerCase().includes('.mp4')
 							const isNewCard = showMoreDestinations && i >= initialDestinationCount
 
 							return (
@@ -181,23 +203,15 @@ function Home() {
 											<span className="dest-region">Lee County, VA</span>
 											<h3>{destination.name}</h3>
 										</div>
-										{isVideo ? (
-											<video
-												className="dest-image"
-												src={destination.image}
-												autoPlay
-												muted
-												loop
-												playsInline
-												aria-label={`${destination.name} video preview`}
-											/>
-										) : (
-											<div
-												className={`dest-image${destination.imageFit === 'contain' ? ' dest-image-contain' : ''}`}
-												style={{ backgroundImage: `url(${destination.image ?? logo})` }}
-												aria-hidden="true"
-											/>
-										)}
+										<div
+											className={`dest-image${destination.imageFit === 'contain' ? ' dest-image-contain' : ''}`}
+											style={{
+												backgroundImage: loadDeferredMedia
+													? `url(${destination.image ?? logo})`
+													: undefined,
+											}}
+											aria-hidden="true"
+										/>
 										<div className="dest-dots" aria-hidden="true">
 											<div className="dest-dot" />
 											<div className="dest-dot" />
@@ -252,9 +266,11 @@ function Home() {
 						className="story-main-image"
 						src={justoff}
 						alt="Scenic view just off the Wilderness Road"
+						loading="lazy"
+						decoding="async"
 					/>
 					<div className="story-inset-image">
-						<img src={wilder} alt="Wilderness Road historic scene" />
+						<img src={wilder} alt="Wilderness Road historic scene" loading="lazy" decoding="async" />
 						<span>Wilderness Road heritage</span>
 					</div>
 				</div>
@@ -289,7 +305,7 @@ function Home() {
 				</div>
 				<div className="contact-layout">
 					<div className="contact-image">
-						<img src={ilovelee} alt="I Love Lee County tourism graphic" />
+						<img src={ilovelee} alt="I Love Lee County tourism graphic" loading="lazy" decoding="async" />
 					</div>
 					<div className="contact-grid">
 						<div>
@@ -330,35 +346,17 @@ function Home() {
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<img src={partner.image} alt={partner.alt} />
+								<img src={partner.image} alt={partner.alt} loading="lazy" decoding="async" />
 							</a>
 						) : (
 						<div key={partner.alt} className="partner-badge">
-							<img src={partner.image} alt={partner.alt} />
+							<img src={partner.image} alt={partner.alt} loading="lazy" decoding="async" />
 						</div>
 						)
 					))}
 				</div>
 			</section>
 
-			<footer className="page-footer">
-				<div className="section-shell footer-inner">
-					<p>Lee County Tourism</p>
-					<div className="footer-links">
-						<a
-							className="facebook-link"
-							href="https://www.facebook.com/iloveleevirginia"
-							target="_blank"
-							rel="noopener noreferrer"
-							aria-label="Follow I Love Lee Virginia on Facebook"
-						>
-							<span className="facebook-mark" aria-hidden="true">f</span>
-							<span>Facebook</span>
-						</a>
-						<a href="#top">Back to Top</a>
-					</div>
-				</div>
-			</footer>
 		</div>
 	)
 }

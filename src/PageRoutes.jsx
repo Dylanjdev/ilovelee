@@ -1,0 +1,678 @@
+import SectionPage from './components/SectionPage'
+import DineShopPlaces from './components/DineShopPlaces'
+import crockettStudio from './assets/crockettstudio.webp'
+import cumberlandGap from './assets/cgap.webp'
+import wildernessRoad from './assets/wilder.webp'
+import whiteRocks from './assets/whiterock.webp'
+import sandCave from './assets/sandcavee.webp'
+import lakeKeokee from './assets/keeokee.webp'
+import powellRiver from './assets/powellriver.webp'
+import martinsCreek from './assets/martinscreek.webp'
+import chadwellGap from './assets/chadwellgap.webp'
+import stoneMountainTrail from './assets/stone.webp'
+import stoneFace from './assets/stoneface.webp'
+import coalHeritage from './assets/coal.webp'
+import wolfeGilbertHouse from './assets/WolfeGilburt.webp'
+import mothersPlace from './assets/Mothersplace.webp'
+import campground from './assets/campground.webp'
+import wildernessRoadCampground from './assets/wildernessroad.webp'
+import wilderCamp from './assets/wildercamp.webp'
+import floraRetreat from './assets/floraretreat.webp'
+import homePlace from './assets/homeplace.webp'
+import hbCabin from './assets/h&b.webp'
+import rockBottomCamp from './assets/mountain.webp'
+import karlanMansion from './assets/karlan.webp'
+import thomasWalkerPavilion from './assets/leehistoic.webp'
+import cedarHills from './assets/ceaderhill.webp'
+import leeTheatre from './assets/LeeThee.webp'
+import townOfJonesville from './assets/TownofJonesvile.webp'
+import townOfPenningtonGap from './assets/townofpenningtongap.webp'
+import bird from './assets/bird.webp'
+
+const heritageSections = [
+  {
+    title: 'A County with Revolutionary Roots',
+    image: wildernessRoad,
+    imageAlt: 'Historic Wilderness Road scene in Lee County',
+    paragraphs: [
+      'Lee County was established in 1792 from part of Russell County and later expanded with land from Scott County. It was named after Henry “Light-Horse Harry” Lee, a celebrated cavalry commander during the American Revolution and Governor of Virginia from 1791 to 1794.',
+      'As Virginia’s westernmost county, Lee County has long served as a crossroads between the eastern United States and the expanding American frontier.',
+    ],
+  },
+  {
+    title: 'Cumberland Gap National Historical Park',
+    image: cumberlandGap,
+    imageAlt: 'Cumberland Gap National Historical Park landscape',
+    paragraphs: [
+      'For thousands of years, the Cumberland Gap served as one of the most important natural passages through the Appalachian Mountains.',
+      'Long before European settlement, Indigenous peoples, including Cherokee, Shawnee, Delaware, and many other nations, used the Gap as a migration route, trading corridor, and hunting pathway. Large herds of buffalo, elk, and deer also traveled through the pass, creating well-worn trails that later became the foundation for the Wilderness Road.',
+      'In 1750, explorer Thomas Walker became one of the first recorded Europeans to document the Gap, naming it after the Duke of Cumberland. Twenty-five years later, Daniel Boone helped blaze the famous Wilderness Road, allowing an estimated 200,000 to 300,000 settlers to move west into Kentucky between 1775 and 1810.',
+    ],
+    listTitle: 'Today, the National Historical Park offers',
+    items: [
+      'Nearly 70 miles of hiking trails',
+      'Gap Cave guided tours',
+      'The historic Hensley Settlement',
+      'Scenic overlooks',
+      'Visitor center museum',
+      'Wildlife viewing and photography',
+    ],
+  },
+  {
+    title: 'The Boone Expedition',
+    paragraphs: [
+      'In October 1773, tragedy struck when Daniel Boone’s eldest son, James Boone, and several companions were killed during an attack by a coalition of Delaware, Shawnee, and Cherokee warriors near Wallen Creek.',
+      'The incident occurred during Boone’s first attempt to settle Kentucky and forced the expedition to retreat, delaying permanent settlement for nearly two years.',
+    ],
+  },
+  {
+    title: 'Martin’s Station',
+    paragraphs: [
+      'In 1769, frontiersman Joseph Martin attempted to establish one of the earliest settlements in Powell Valley.',
+      'After conflict with Native American groups, the settlement was abandoned. Martin returned in 1775 and built a fortified community known as Martin’s Station, consisting of cabins connected by defensive stockades.',
+      'Although abandoned the following year, the fort became an important chapter in Virginia’s frontier history. Visitors today can experience a full-scale reconstruction at Wilderness Road State Park, where living history interpreters demonstrate frontier life throughout the year.',
+    ],
+  },
+  {
+    title: 'Wilderness Road State Park',
+    paragraphs: [
+      'Located in Ewing, the park preserves one of America’s most important migration routes. The park regularly hosts reenactments, educational programs, and special events celebrating Virginia’s frontier heritage.',
+    ],
+    listTitle: 'Visitors can enjoy',
+    items: [
+      'Living history demonstrations',
+      'Frontier museum exhibits',
+      'Historic Martin’s Station',
+      'Award-winning theater presentation',
+      'Seasonal festivals',
+      'Hiking and family activities',
+    ],
+  },
+  {
+    title: 'Hensley Settlement',
+    paragraphs: [
+      'Hidden atop Brush Mountain sits Hensley Settlement, one of the best-preserved early 20th-century Appalachian communities in America.',
+      'Founded by the Hensley and Gibbons families, the isolated mountain settlement remained largely self-sufficient for decades. Residents farmed, raised livestock, built their own homes, and lived without many modern conveniences.',
+      'The final resident left the mountain in 1951, preserving a remarkable snapshot of Appalachian life. Guided ranger tours are available seasonally.',
+    ],
+  },
+  {
+    title: 'White Rocks',
+    image: whiteRocks,
+    imageAlt: 'White Rocks overlook above Powell Valley',
+    paragraphs: [
+      'One of Lee County’s most recognizable natural landmarks, White Rocks rises dramatically above the Cumberland Mountains.',
+      'These towering limestone cliffs overlook Powell Valley and have served as a landmark for travelers since the days of the Wilderness Road. Today, White Rocks remains one of Southwest Virginia’s premier scenic overlooks and photography destinations.',
+    ],
+  },
+  {
+    title: 'Stone Face Rock',
+    image: stoneFace,
+    imageAlt: 'Stone Face Rock near Pennington Gap',
+    paragraphs: [
+      'Located near Pennington Gap, Stone Face Rock resembles the profile of a human face carved into the mountainside.',
+      'Local folklore suggests it honors a Cherokee leader, while geologists attribute the formation to centuries of natural weathering and erosion. Regardless of its origin, it has become one of Lee County’s most photographed natural landmarks.',
+    ],
+  },
+  {
+    title: 'Ely Mound',
+    paragraphs: [
+      'The Ely Mound is Virginia’s best-preserved Native American ceremonial mound. Constructed between A.D. 1200 and 1650, it reflects the sophisticated societies that flourished throughout the Appalachian region before European contact.',
+      'Archaeological research conducted in 1877 helped disprove the once-popular “Lost Race” theory by demonstrating that the mound was built by the ancestors of present-day Native American peoples. The mound remains one of Virginia’s most significant archaeological sites.',
+    ],
+  },
+  {
+    title: 'Historic Jonesville',
+    paragraphs: [
+      'Jonesville became Lee County’s county seat in 1794 and was named for early settler Frederick Jones.',
+      'During the Civil War, Union forces burned the courthouse in 1864. The current courthouse, completed in 1933, continues to serve as the center of county government. Jonesville remains the historic heart of Lee County.',
+    ],
+  },
+  {
+    title: 'The Birthplace of Osteopathic Medicine',
+    paragraphs: [
+      'Andrew Taylor Still was born near Lee County’s Natural Bridge on August 6, 1828.',
+      'Still developed the principles of osteopathic medicine and founded the first osteopathic medical school in Kirksville, Missouri, in 1892. Today, physicians holding the D.O. degree continue his legacy throughout the United States.',
+    ],
+  },
+  {
+    title: 'Jonesville Methodist Campground',
+    paragraphs: [
+      'Established in 1810, this historic campground became an important gathering place for early Methodist worship in Southwest Virginia.',
+      'Its iconic wooden auditorium, completed in 1828, still stands today and remains one of Virginia’s oldest surviving camp meeting structures.',
+    ],
+  },
+  {
+    title: 'Coal Mining Heritage',
+    image: coalHeritage,
+    imageAlt: 'Lee County Coal Heritage Memorial',
+    paragraphs: [
+      'Coal mining shaped generations of families throughout Lee County and Central Appalachia.',
+      'The Coal Miners Memorial in St. Charles honors the miners whose hard work powered industries across America while recognizing those who lost their lives in the mines. It stands as a tribute to the resilience, sacrifice, and strength of Appalachian communities.',
+    ],
+  },
+  {
+    title: 'Appalachian African-American Cultural Center',
+    paragraphs: [
+      'Located in the former African American elementary school in Pennington Gap, the Cultural Center preserves the history, heritage, and contributions of African Americans in Southwest Virginia.',
+    ],
+    listTitle: 'Visitors can explore',
+    items: [
+      'Historic one-room classroom exhibits',
+      'African American literature collection',
+      'Local historical archives',
+      'Community heritage displays',
+      'Tours available by appointment',
+    ],
+  },
+  {
+    title: 'Home to Influential Americans',
+    paragraphs: [
+      'Lee County has produced individuals whose influence reached far beyond Southwest Virginia.',
+    ],
+    items: [
+      'Andrew Taylor Still, founder of osteopathic medicine',
+      'C. Bascom Slemp, who served as Secretary to President Calvin Coolidge beginning in 1923',
+      'Earl Taylor and the Stoney Mountain Boys, among the earliest nationally recognized bluegrass performers and one of the first bluegrass bands to perform at Carnegie Hall',
+    ],
+  },
+]
+
+const pages = [
+  {
+    path: '/calendar',
+    title: 'Calendar',
+    description: 'Upcoming events, festivals, live performances, and community happenings across Lee County.',
+  },
+  {
+    path: '/artisans',
+    title: 'Artisans',
+    description: 'Meet makers, craftspeople, and creative businesses rooted in Appalachian tradition.',
+    label: 'Wilderness Road Artisan Trail',
+    features: [
+      {
+        title: 'Crockett Studio',
+        location: 'Caylor, Lee County',
+        image: crockettStudio,
+        imageAlt: 'Crockett Studio artwork and countryside view',
+        description:
+          'Located on the Wilderness Road Artisan Trail in Caylor, Crockett Studio features paintings inspired by the Virginia countryside. The studio sits near the Chadwell Station Trailhead in Cumberland Gap National Historical Park, with a view from the windows that feels like part of the work.',
+        note: 'Open by appointment.',
+        phone: '276-445-4967',
+        email: 'sscrockett@peoplepc.com',
+      },
+    ],
+  },
+  {
+    path: '/heritage',
+    title: 'Heritage',
+    description:
+      'Discover the rich heritage of Lee County, where history, natural beauty, and Appalachian culture come together in the far southwest corner of Virginia.',
+    label: 'Lee County History',
+    intro:
+      'From the first peoples who traveled through the Cumberland Gap thousands of years ago to the pioneers who helped shape America’s westward expansion, Lee County has played a significant role in our nation’s story.',
+    sections: heritageSections,
+  },
+  {
+    path: '/map',
+    title: 'Map',
+    description: 'Navigate Lee County, towns, parks, attractions, and scenic stops with a county-wide map view.',
+    label: 'County Map',
+    intro:
+      'Use the map below to explore Lee County, Virginia and orient your trip around the county’s towns, mountain corridors, parks, and nearby regional landmarks.',
+    mapEmbed: {
+      title: 'Google map of Lee County, Virginia',
+      src: 'https://www.google.com/maps?q=Lee%20County%2C%20Virginia&output=embed',
+      link: 'https://www.google.com/maps/search/?api=1&query=Lee%20County%2C%20Virginia',
+      linkLabel: 'Open Lee County in Google Maps',
+    },
+  },
+  {
+    path: '/dine-shop',
+    title: 'Dine & Shop',
+    description: 'Find Lee County restaurants, cafes, shops, stores, lodging, and local services with live OpenStreetMap data.',
+    label: 'OpenStreetMap Directory',
+    intro:
+      'Browse businesses and visitor stops mapped around Lee County. Results come from OpenStreetMap through the free Overpass API and update as the community improves the map.',
+    content: <DineShopPlaces />,
+  },
+  {
+    path: '/lodging',
+    title: 'Lodging',
+    description: 'Browse places to stay, from cozy rentals to convenient overnight options.',
+    label: 'Places to Stay',
+    features: [
+      {
+        title: 'Wolfe-Gilbert House',
+        location: 'Dryden, Virginia',
+        image: wolfeGilbertHouse,
+        imageAlt: 'Wolfe-Gilbert House Victorian farmhouse in Dryden, Virginia',
+        description:
+          'Conveniently located between Pennington Gap and Big Stone Gap, this renovated 1896 Victorian farmhouse offers peace and quiet with town nearby. The furnished home sleeps 10 with 5 bedrooms, 2 baths, a full kitchen, a large screened porch, mountain views, cows, abundant wildlife, and a large yard for celebrations or family cookouts.',
+        address: '193 Wolfe-Gilbert Rd., Dryden, VA 24243',
+        phone: '276-220-4169',
+        links: [
+          {
+            label: 'View full listing',
+            href: 'https://www.vacationlee.com/',
+          },
+          {
+            label: 'View on Airbnb',
+            href: 'https://www.airbnb.com/rooms/15951354?source_impression_id=p3_1783361580_P3hYFI7jzz8qeQp9',
+          },
+        ],
+      },
+      {
+        title: "Mother's Place",
+        location: 'Pennington Gap, Virginia',
+        image: mothersPlace,
+        imageAlt: "Mother's Place arts and crafts style vacation rental in Pennington Gap, Virginia",
+        description:
+          'This traditional arts and crafts style home sits in a countryside community between Pennington Gap and Dryden on Big Hill, just one mile off 58A. The three-bedroom home sleeps 6 with one full bath, an updated kitchen and bath, some original antique furnishings, a front porch, and a side screened porch. Enjoy mountaintop views, morning fog rising from Powell River and the valley below, and views toward Lovelady Mountain and Elk Knob.',
+        address: '1054 Big Hill Rd, Pennington Gap, VA 24277',
+        phone: '276-220-4169',
+        links: [
+          {
+            label: 'View full listing',
+            href: 'http://www.vacationlee.com/',
+          },
+          {
+            label: 'View on Airbnb',
+            href: 'https://www.airbnb.com/rooms/5969699?source_impression_id=p3_1783361844_P3Ui1lTNBxCx7o3C',
+          },
+        ],
+      },
+      {
+        title: 'Leeman Field RV Park and Campground',
+        location: 'Pennington Gap, Virginia',
+        image: campground,
+        imageAlt: 'Leeman Field RV Park and Campground in Pennington Gap, Virginia',
+        description:
+          'Leeman Field RV Park and Campground offers full hook-up campsites with showers, restrooms, picnic tables, fire pits, 30/50 amp service, Wi-Fi, water, sewer hook-up, and tent camping. The campground sits next to historic Leeman Field Recreation Park with a seasonal pool, horse stables, arena, outdoor stage, playground, tennis, picnic pavilions, greenway, fishing, and community events. ATV riders can access Stone Mountain ATV Trail and ride marked streets to town via N. Kentucky Street with a trail permit and helmet.',
+        note: 'Passport America discounts are honored Sunday-Wednesday.',
+        phone: '276-298-5177',
+        links: [
+          {
+            label: 'View campground information',
+            href: 'https://townofpenningtonva.gov/campground-information/',
+          },
+          {
+            label: 'Spearhead Trails',
+            href: 'http://www.spearheadtrails.com/',
+          },
+        ],
+      },
+      {
+        title: 'Wilderness Road Campground',
+        location: 'Cumberland Gap National Historical Park',
+        image: wildernessRoadCampground,
+        imageAlt: 'Wilderness Road Campground in Cumberland Gap National Historical Park',
+        description:
+          'Wilderness Road Campground and Picnic Area is part of Cumberland Gap National Historical Park, located in western Lee County off Highway 58. The campground has 160 sites in a wooded setting, with 30 and 50 amp electrical hook-ups available at 41 sites. Hot showers and potable water are located in clean comfort stations, nature trails connect to the campground, and the amphitheatre offers music and storytelling events on Saturday evenings.',
+        note: 'Campsites are available on a first-come, first-served basis.',
+        phone: '606-248-2817',
+        links: [
+          {
+            label: 'View National Park Service page',
+            href: 'http://www.nps.gov/cuga/index.htm',
+          },
+        ],
+      },
+      {
+        title: 'Wilderness Road State Park Primitive Group Camping',
+        location: 'Ewing, Virginia',
+        image: wilderCamp,
+        imageAlt: 'Primitive group camping at Wilderness Road State Park in Ewing, Virginia',
+        description:
+          'Wilderness Road State Park offers primitive group camping at the intersection of Route 58 and 923 in Elydale, five miles west of Ewing and six miles east of Cumberland Gap National Historical Park.',
+        address: '8051 Wilderness Road, Ewing, VA 24248',
+        phone: '276-445-3065',
+        links: [
+          {
+            label: 'View state park information',
+            href: 'http://www.dcr.virginia.gov/state-parks/wilderness-road.shtml#general_information',
+          },
+        ],
+      },
+      {
+        title: "Flora's Retreats",
+        location: 'Jonesville, Virginia',
+        image: floraRetreat,
+        imageAlt: "Flora's Retreats luxury vacation rental in Jonesville, Virginia",
+        description:
+          "Flora's Retreats offers luxury vacation rentals in Jonesville, Virginia.",
+        address: '290 Spyglass Dr., Jonesville, VA 24263',
+        phone: '812-881-4355',
+        links: [
+          {
+            label: 'View full listing',
+            href: 'https://www.florasretreats.com/',
+          },
+        ],
+      },
+      {
+        title: 'The Home Place',
+        location: 'Pennington Gap, Virginia',
+        image: homePlace,
+        imageAlt: 'The Home Place farm stay in Pennington Gap, Virginia',
+        description:
+          'The Home Place is a peaceful farm stay in Pennington Gap with mountain views, close to groceries, restaurants, Lee Theatre, Axe Handle Distillery, Stone Mountain ATV Trails, and Leeman Field RV Park. The entire home includes a master bedroom with a king bed and private full bath, a queen bedroom, a third bedroom with a twin and trundle, modern kitchen, dining room, second full bath, and laundry area. The farm setting adjoins pasture with cows, horses, sheep, and abundant wildlife.',
+        note: 'No pets, smoking, or parties. Children must be monitored around marked electric fences.',
+        links: [
+          {
+            label: 'Book on Airbnb',
+            href: 'https://www.airbnb.com/rooms/669810163221412690',
+          },
+        ],
+      },
+      {
+        title: 'H&B Cabin and Farm at Wilder Bent',
+        location: 'Jonesville, Virginia',
+        image: hbCabin,
+        imageAlt: 'H&B Cabin and Farm at Wilder Bent log cabin near Jonesville, Virginia',
+        description:
+          'H&B Cabin and Farm at Wilder Bent is a beautiful mountain log cabin with modern amenities on the Powell River. The home has a spacious kitchen, large dining table for family meals, and a stone fireplace made from stone found on the property. A private lower level is ideal for parents, in-laws, or teens, and the peaceful setting offers fishing, hiking, and kayaking just minutes from Jonesville, Highway 58, and nearby attractions.',
+        address: 'Wilder Bent Drive, Jonesville, VA 24263',
+        links: [
+          {
+            label: 'Book on Airbnb',
+            href: 'https://airbnb.com/h/hbcabinandfarm?fbclid=IwZXh0bgNhZW0CMTAAYnJpZBExMkkyV0p3WjZkeVVSNUVKMQEe3vU30psYe1D5VkXb_SML-owfZ28vlvTSb9P9b0n3sQixAFfsFEcOIK3TVbc_aem_A72sUJN2nreNuwTEBing-g',
+          },
+        ],
+      },
+      {
+        title: 'Rock Bottom Horse Camp',
+        location: 'Ewing, Virginia',
+        image: rockBottomCamp,
+        imageAlt: 'Mountain scenery near Rock Bottom Horse Camp in Ewing, Virginia',
+        description:
+          'Rock Bottom Horse Camp sits near Cumberland Gap National Historical Park and welcomes horseback riders, RV travelers, tent campers, and outdoor visitors. The camp makes a convenient base for trail days, with nearby routes leading toward standout destinations such as White Rocks and Sand Cave.',
+        address: '375 Cherokee Hills Ln, Ewing, VA 24248',
+        phone: '276-445-6676',
+        links: [
+          {
+            label: 'View campground website',
+            href: 'https://www.rockbottomhorsecamp.com/',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/outdoors',
+    title: 'Outdoors',
+    description: 'Plan your time on trails, overlooks, ATV routes, and recreation areas.',
+    label: 'Outdoor Recreation',
+    intro:
+      'From technical OHV trail systems and mountain overlooks to hiking, paddling, fishing, and quiet forest lakes, Lee County gives outdoor travelers room to explore.',
+    features: [
+      {
+        title: 'Stone Mountain Spearhead Trail',
+        location: 'Lee County, Virginia',
+        image: stoneMountainTrail,
+        imageAlt: 'Stone Mountain Spearhead Trail terrain in Lee County, Virginia',
+        description:
+          'The Stone Mountain trail system offers 30 miles of challenging intermediate to advanced OHV trails with nine stunning overlook vistas. Many overlooks include rest areas and picnic tables, giving riders places to pause for outdoor dining with unmatched mountain views. Considered a technical trail, Stone Mountain is a blue and black rated system with easy to moderate climbs, loop options, and steep technical challenges for experienced riders.',
+        note: 'Best suited for intermediate to advanced OHV riders.',
+        links: [
+          {
+            label: 'View Stone Mountain trail information',
+            href: 'https://www.spearheadtrails.com/pages/stone-mountain',
+          },
+        ],
+      },
+      {
+        title: 'Cumberland Gap National Historical Park',
+        location: 'Cumberland Gap Region',
+        image: cumberlandGap,
+        imageAlt: 'Cumberland Gap National Historical Park mountain landscape',
+        description:
+          'Cumberland Gap National Historical Park offers tours, cave experiences, mountain overlooks, historic trails, and access to some of the region’s best-known outdoor landmarks. Visitors can plan hikes, guided experiences, and park outings through the National Park Service.',
+        links: [
+          {
+            label: 'Visit the National Park Service site',
+            href: 'https://www.nps.gov/cuga/index.htm',
+          },
+        ],
+      },
+      {
+        title: 'Powell River Fishing and Blueway',
+        location: 'Lee County, Virginia',
+        image: powellRiver,
+        imageAlt: 'Powell River in Lee County, Virginia',
+        credit: {
+          label: 'Town of Cumberland Gap',
+          href: 'https://www.townofcumberlandgap.com/powell-river/',
+        },
+        description:
+          'The Powell River begins in Wise County, flows through Lee County, and continues into Tennessee before reaching Norris Lake. Lee County includes nearly 68 miles of scenic river with opportunities for paddling, fishing, wildlife viewing, and relaxed days on the water. Local access points include Yokum Station near Dryden, Poteet Ferry on US Highway 58, Beech Grove, Flanary Bridge, and Steep Rock-Wallens Creek.',
+        note:
+          'Anglers can find redbreast sunfish, rock bass, smallmouth bass, catfish, and musky. Public access includes Dryden Fishing Hole & Boat Ramp and Powell River Public Access on Highway 58.',
+        links: [
+          {
+            label: 'Powell River Blueway',
+            href: 'https://www.powellriverblueway.org/',
+          },
+          {
+            label: 'Virginia fishing licenses',
+            href: 'https://dwr.virginia.gov/licenses/',
+          },
+        ],
+      },
+      {
+        title: 'Martins Creek Trout Fishing',
+        location: 'Rose Hill, Virginia',
+        image: martinsCreek,
+        imageAlt: 'Martins Creek in Rose Hill, Virginia',
+        credit: {
+          label: 'Bill Fuller',
+          href: 'https://hikingbill.com/?author=1',
+        },
+        description:
+          'Martins Creek and the North Fork of the Powell River are both stocked with trout. Martins Creek is located off Martins Creek Road in Rose Hill and gives anglers another quiet outdoor stop in western Lee County.',
+        links: [
+          {
+            label: 'Virginia trout fishing information',
+            href: 'https://dwr.virginia.gov/fishing/trout/',
+          },
+        ],
+      },
+      {
+        title: 'Chadwell Gap Trail',
+        location: 'Ewing, Virginia',
+        image: chadwellGap,
+        imageAlt: 'Chadwell Gap Trail near Ewing, Virginia',
+        description:
+          'Chadwell Gap Trail is a difficult but rewarding point-to-point trail near Ewing with a waterfall, Sand Cave access, and a beautiful view from White Rocks. The route can also connect to Hensley Settlement over 3.8 miles of challenging terrain. Horses are welcome on Cumberland Gap National Historical Park trails at Chadwell Gap and Thomas Walker Civic Park.',
+        note:
+          'No permit or fee is required for day hiking. Backcountry camping requires a permit from the park visitor center, and dogs must be leashed.',
+        links: [
+          {
+            label: 'Cumberland Gap trail map',
+            href: 'https://www.nps.gov/cuga/planyourvisit/maps.htm',
+          },
+        ],
+      },
+      {
+        title: 'Thomas Walker Civic Park, Sand Cave, and White Rocks',
+        location: 'Ewing, Virginia',
+        image: sandCave,
+        imageAlt: 'Sand Cave in Cumberland Gap National Historical Park',
+        description:
+          'This medium-difficulty loop hike is about 8.2 miles round trip and climbs Cumberland Mountain toward Sand Cave and White Rocks Overlook. The route follows Ewing Trail to Ridge Trail, reaches the Sand Cave spur, continues toward White Rocks, then returns by White Rocks Trail and Ewing Trail. Expect rocky sections, switchbacks, water bars, and possible water crossings after rain.',
+        note:
+          'The covered shelter at Thomas Walker Civic Park is also a scenic venue for gatherings before or after the trail.',
+      },
+      {
+        title: 'Virginia Birding and Wildlife Trail',
+        location: 'Daniel Boone Loop',
+        image: bird,
+        imageAlt: 'Picture of a Northern Red Cardinal perched on a tree branch in Lee County, Virginia',
+        description:
+          'The Virginia Birding and Wildlife Trail connects wildlife viewing sites across the state. The Mountain Phase includes the Daniel Boone Loop, which crosses Lee and Scott Counties and highlights expansive mountain vistas, forest trails, fields, parklands, and wildlife habitat.',
+        note:
+          'The far western Daniel Boone Loop site is located in Cumberland Gap National Historical Park’s Wilderness Road Campground area near Gibson Station.',
+        links: [
+          {
+            label: 'Virginia Bird and Wildlife Trail',
+            href: 'https://dwr.virginia.gov/vbwt/',
+          },
+        ],
+      },
+      {
+        title: 'Wilderness Road Trail',
+        location: 'Wilderness Road State Park',
+        image: wildernessRoad,
+        imageAlt: 'Wilderness Road historic trail landscape',
+        description:
+          'Wilderness Road Trail is an 8.5-mile hiking, biking, and equestrian trail registered as a stop on the Virginia Birding and Wildlife Trail. Indian Ridge Trail, a 0.77-mile self-guided route, is a natural heritage trail for visitors who want a shorter walk.',
+        links: [
+          {
+            label: 'Wilderness Road State Park',
+            href: 'https://www.dcr.virginia.gov/state-parks/wilderness-road',
+          },
+        ],
+      },
+      {
+        title: 'Rock Bottom Horse Camp',
+        location: 'Ewing, Virginia',
+        image: rockBottomCamp,
+        imageAlt: 'Mountain view near Rock Bottom Horse Camp',
+        description:
+          'Rock Bottom Horse Camp welcomes equestrian campers, RV travelers, and tent campers at the east end of Cumberland Gap National Historical Park. Park trails are a short ride from the campground and offer access toward White Rocks, Sand Cave, and Hensley Settlement, with more than 70 miles of backcountry riding and over 85 miles of hiking trails in the broader park area.',
+        phone: '276-445-6676',
+        links: [
+          {
+            label: 'Book Rock Bottom Horse Camp',
+            href: 'https://www.rockbottomhorsecamp.com/',
+          },
+        ],
+      },
+      {
+        title: 'Lake Keokee',
+        location: 'Keokee, Virginia',
+        image: lakeKeokee,
+        imageAlt: 'Lake Keokee in Lee County, Virginia',
+        description:
+          'Lake Keokee is a 92-acre scenic non-motorized impoundment surrounded by National Forest land. The 3.7-mile Keokee Loop Trail circles the lake, with picnic areas, a paved boat ramp, quiet paddling, electric-motor boating, and fishing for largemouth bass, bluegill, redear sunfish, and channel catfish. A Virginia National Forest Stamp is required to fish.',
+        note:
+          'The Olinger Gap Trail connects Keokee Loop Trail to Stone Mountain Trail, and the lake area is known for birds, butterflies, reptiles, amphibians, and forest wildlife.',
+        links: [
+          {
+            label: 'Lake Keokee fishing information',
+            href: 'https://dwr.virginia.gov/waterbody/lake-keokee/',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/towns',
+    title: 'Towns',
+    description: 'Get to know the communities that shape the character and hospitality of Lee County.',
+    label: 'Lee County Communities',
+    features: [
+      {
+        title: 'Town of Jonesville',
+        location: 'Jonesville, Virginia',
+        image: townOfJonesville,
+        imageAlt: 'Town of Jonesville, Virginia',
+        credit: {
+          label: 'Brian Stansberry',
+          href: 'https://commons.wikimedia.org/wiki/User:BrineStans',
+        },
+        description:
+          'Jonesville is Lee County’s historic county seat, founded in the late 1700s and set among the mountains of Southwest Virginia. Known today as a small town with a generous community spirit, Jonesville blends courthouse-town history, local commerce, and seasonal Main Street color, including the summer Festival of Flowers display.',
+        address: '842 Park Street, Jonesville, VA 24263',
+        phone: '276-346-1151',
+        email: 'office@townofjonesville.org',
+        links: [
+          {
+            label: 'Visit town website',
+            href: 'http://www.townofjonesville.org/',
+          },
+        ],
+      },
+      {
+        title: 'Town of Pennington Gap',
+        location: 'Pennington Gap, Virginia',
+        image: townOfPenningtonGap,
+        imageAlt: 'Town of Pennington Gap, Virginia',
+        credit: {
+          label: 'Wikipedia: Pennington Gap, Virginia',
+          href: 'https://en.wikipedia.org/wiki/Pennington_Gap,_Virginia',
+        },
+        description:
+          'Pennington Gap is a welcoming Lee County town with community projects, outdoor recreation access, and a strong connection to local music and events. The town is home to the long-running Tobacco Festival, an official stop on The Crooked Road, along with ongoing work around Lee Theatre, Leeman Field, the Greenway, ATV access, and visitor amenities.',
+        phone: '276-546-1177',
+        email: 'Clerk@TownOfPenningtonVA.gov',
+        links: [
+          {
+            label: 'Visit town website',
+            href: 'http://www.townofpenningtonva.gov/',
+          },
+          {
+            label: 'Tobacco Festival',
+            href: 'http://tobaccofestival.org/',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/weddings',
+    title: 'Weddings',
+    description: 'Explore venues and local services for mountain weddings and celebrations.',
+    label: 'Wedding Venues',
+    features: [
+      {
+        title: 'Karlan Mansion at Wilderness Road State Park',
+        location: 'Ewing, Virginia',
+        image: karlanMansion,
+        imageAlt: 'Karlan Mansion at Wilderness Road State Park wedding venue',
+        description:
+          'Karlan Mansion at Wilderness Road State Park offers a historic mountain setting for weddings, receptions, and special celebrations in Lee County.',
+        phone: '276-445-3065',
+      },
+      {
+        title: 'Thomas Walker Park Pavilion',
+        location: 'Ewing, Virginia',
+        image: thomasWalkerPavilion,
+        imageAlt: 'Thomas Walker Park Pavilion wedding and event venue',
+        description:
+          'Thomas Walker Park Pavilion provides a scenic outdoor setting for weddings, gatherings, and community celebrations in Lee County.',
+        phone: '606-246-1075',
+      },
+      {
+        title: 'Cedar Hills Country Club',
+        location: 'Jonesville, Virginia',
+        image: cedarHills,
+        imageAlt: 'Cedar Hills Country Club wedding and event venue',
+        description:
+          'Cedar Hills Country Club offers a welcoming Lee County setting for wedding celebrations, receptions, and special events.',
+        phone: '276-346-1535',
+      },
+      {
+        title: 'Historical Lee Theatre',
+        location: 'Pennington Gap, Virginia',
+        image: leeTheatre,
+        imageAlt: 'Historical Lee Theatre wedding and event venue',
+        description:
+          'Historical Lee Theatre offers a memorable Lee County venue for ceremonies, performances, receptions, and special gatherings.',
+        phone: '276-546-4000',
+      },
+    ],
+  },
+]
+
+function PageRoutes({ pathname }) {
+  const page = pages.find((item) => item.path === pathname)
+
+  if (!page) {
+    return <SectionPage title="Page Not Found" description="Return home to keep exploring Lee County." />
+  }
+
+  return <SectionPage {...page} />
+}
+
+export default PageRoutes

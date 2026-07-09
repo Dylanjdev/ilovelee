@@ -52,15 +52,48 @@ function SectionPage({
           <div className="feature-list">
             {features.map((feature) => (
               <article className="feature-card" key={feature.title}>
-                <img src={feature.image} alt={feature.imageAlt} />
+                <div className="feature-media-frame">
+                  {feature.video ? (
+                    <video
+                      className="feature-media"
+                      src={feature.video}
+                      aria-label={feature.videoLabel ?? feature.imageAlt}
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img
+                      className="feature-media"
+                      src={feature.image}
+                      alt={feature.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                  {feature.credit && (
+                    <p className="feature-credit">
+                      Credit:{' '}
+                      <a href={feature.credit.href} target="_blank" rel="noopener noreferrer">
+                        {feature.credit.label}
+                      </a>
+                    </p>
+                  )}
+                </div>
                 <div className="feature-copy">
                   {feature.location && <p className="feature-location">{feature.location}</p>}
                   <h2>{feature.title}</h2>
                   <p>{feature.description}</p>
+                  {feature.address && <p className="feature-address">{feature.address}</p>}
                   {feature.note && <p className="feature-note">{feature.note}</p>}
                   <div className="feature-actions">
                     {feature.phone && <a href={`tel:+1${feature.phone.replace(/\D/g, '')}`}>{feature.phone}</a>}
                     {feature.email && <a href={`mailto:${feature.email}`}>{feature.email}</a>}
+                    {feature.links?.map((link) => (
+                      <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                        {link.label}
+                      </a>
+                    ))}
                   </div>
                 </div>
               </article>
@@ -76,7 +109,7 @@ function SectionPage({
                 key={section.title}
               >
                 {section.image && (
-                  <img src={section.image} alt={section.imageAlt ?? ''} />
+                  <img src={section.image} alt={section.imageAlt ?? ''} loading="lazy" decoding="async" />
                 )}
                 <div className="heritage-section-copy">
                   <h2>{section.title}</h2>
