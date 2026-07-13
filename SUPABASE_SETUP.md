@@ -66,9 +66,10 @@ Open `/calendar`, choose **Sign in to manage events**, and use the account creat
 This repository's Pages workflow is prepared to inject the Supabase values during the build.
 
 1. Open the GitHub repository and go to **Settings > Secrets and variables > Actions**.
-2. On the **Variables** tab, create `VITE_SUPABASE_URL` with the Project URL.
-3. On the **Secrets** tab, create `VITE_SUPABASE_PUBLISHABLE_KEY` with the Publishable key.
-4. Push to `main` or manually run the **Deploy to GitHub Pages** workflow.
+2. On the **Secrets** tab, create `VITE_SUPABASE_PUBLISHABLE_KEY` with the Publishable key.
+3. Push to `main`. The **Deploy to GitHub Pages** workflow runs automatically.
+
+The public Supabase project URL is already configured in the deployment workflow, so a separate GitHub variable is not required.
 
 Vite embeds both values in the browser bundle. That is expected for a Supabase publishable key; security comes from the SQL grants and RLS policies. A secret or `service_role` key must never be added here.
 
