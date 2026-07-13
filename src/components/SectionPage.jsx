@@ -50,7 +50,7 @@ function SectionPage({
 
         {hasFeatures && (
           <div className="feature-list">
-            {features.map((feature) => (
+            {features.map((feature, featureIndex) => (
               <article className="feature-card" key={feature.title}>
                 <div className="feature-media-frame">
                   {feature.video ? (
@@ -67,7 +67,10 @@ function SectionPage({
                       className="feature-media"
                       src={feature.image}
                       alt={feature.imageAlt}
-                      loading="lazy"
+                      width={feature.imageWidth}
+                      height={feature.imageHeight}
+                      loading={featureIndex === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={featureIndex === 0 ? 'high' : 'auto'}
                       decoding="async"
                     />
                   )}
@@ -103,13 +106,19 @@ function SectionPage({
 
         {hasSections && (
           <div className="heritage-story">
-            {sections.map((section) => (
+            {sections.map((section, sectionIndex) => (
               <article
                 className={`heritage-section${section.image ? ' has-image' : ''}`}
                 key={section.title}
               >
                 {section.image && (
-                  <img src={section.image} alt={section.imageAlt ?? ''} loading="lazy" decoding="async" />
+                  <img
+                    src={section.image}
+                    alt={section.imageAlt ?? ''}
+                    loading={sectionIndex === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={sectionIndex === 0 ? 'high' : 'auto'}
+                    decoding="async"
+                  />
                 )}
                 <div className="heritage-section-copy">
                   <h2>{section.title}</h2>

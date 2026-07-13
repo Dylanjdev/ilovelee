@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import logo from '../assets/logo.webp'
+import { useEffect, useRef, useState } from 'react'
+import logo from '../assets/ilovelee.webp'
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -16,6 +16,22 @@ const navLinks = [
 
 function Layout({ children, currentPath, navigate, toHref }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuButtonRef = useRef(null)
+
+  useEffect(() => {
+    if (!isMenuOpen) return undefined
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false)
+        menuButtonRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isMenuOpen])
+
   const handleInternalClick = (event, to) => {
     if (
       event.defaultPrevented ||
@@ -38,10 +54,11 @@ function Layout({ children, currentPath, navigate, toHref }) {
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="top-nav">
         <a href={toHref('/')} className="brand-mark" onClick={(event) => handleInternalClick(event, '/')}>
-          <img src={logo} alt="Lee County Tourism" />
-          <span>Lee County Tourism</span>
+          <img src={logo} alt="" width="44" height="44" />
+          <span>I Love Lee</span>
         </a>
         <button
+          ref={menuButtonRef}
           type="button"
           className="menu-toggle"
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
@@ -76,7 +93,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
         <div className="footer-inner">
           <div className="footer-main">
             <div className="footer-brand">
-              <p>Lee County Tourism</p>
+              <p>I Love Lee</p>
               <span>Plan your trip through Virginia&apos;s westernmost county.</span>
             </div>
             <div className="footer-column">
@@ -108,7 +125,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
             </div>
           </div>
           <div className="footer-bottom">
-            <span>&copy; 2026 Lee County Virginia Tourism ~ iLoveLee.org ~ All Rights Reserved.</span>
+            <span>&copy; 2026 I Love Lee · discoverleeva.com · All Rights Reserved.</span>
             <a
               className="builder-credit"
               href="https://smithdigitals.com/"

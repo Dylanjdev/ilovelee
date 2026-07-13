@@ -414,9 +414,13 @@ async function requestOverpass(query) {
   const errors = []
 
   for (const endpoint of overpassEndpoints) {
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => controller.abort(), 12000)
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'text/plain;charset=UTF-8',
         },
@@ -430,6 +434,8 @@ async function requestOverpass(query) {
       errors.push(`${new URL(endpoint).hostname} returned ${response.status}`)
     } catch (error) {
       errors.push(`${new URL(endpoint).hostname}: ${error.message}`)
+    } finally {
+      window.clearTimeout(timeoutId)
     }
   }
 
@@ -437,6 +443,15 @@ async function requestOverpass(query) {
 }
 
 async function fetchPlacesForCategory(categoryId, filters) {
+  const cachedPlaces = readCachedPlaces(categoryId)
+
+  if (cachedPlaces) {
+    return {
+      places: cachedPlaces,
+      source: 'cache',
+    }
+  }
+
   const cacheKey = getCacheKey(categoryId)
 
   if (!inflightRequests.has(cacheKey)) {
@@ -475,7 +490,7 @@ function DineShopPlaces() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [dataSource, setDataSource] = useState('')
-  const [refreshRequest, setRefreshRequest] = useState({ count: 0, force: false })
+  const [refreshCount, setRefreshCount] = useState(0)
 
   const activeFilters = useMemo(
     () => categories.find((category) => category.id === activeCategory)?.filters ?? categories[0].filters,
@@ -526,11 +541,11 @@ function DineShopPlaces() {
     return () => {
       isCurrent = false
     }
-  }, [activeCategory, activeFilters, refreshRequest])
+  }, [activeCategory, activeFilters, refreshCount])
 
   function refreshPlaces() {
     clearCachedPlaces(activeCategory)
-    setRefreshRequest(({ count }) => ({ count: count + 1, force: true }))
+    setRefreshCount((count) => count + 1)
   }
 
   function selectCategory(categoryId) {
@@ -615,7 +630,7 @@ function DineShopPlaces() {
 
       {status === 'ready' && (
         <>
-          <div className="places-summary">
+          <div className="places-summary" aria-live="polite">
             <div>
               <p>
                 {places.length}{' '}

@@ -1,5 +1,5 @@
+import { lazy, Suspense } from 'react'
 import SectionPage from './components/SectionPage'
-import DineShopPlaces from './components/DineShopPlaces'
 import crockettStudio from './assets/crockettstudio.webp'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
@@ -28,6 +28,9 @@ import leeTheatre from './assets/LeeThee.webp'
 import townOfJonesville from './assets/TownofJonesvile.webp'
 import townOfPenningtonGap from './assets/townofpenningtongap.webp'
 import bird from './assets/bird.webp'
+
+const DineShopPlaces = lazy(() => import('./components/DineShopPlaces'))
+const CalendarPage = lazy(() => import('./components/CalendarPage'))
 
 const heritageSections = [
   {
@@ -183,6 +186,12 @@ const pages = [
     path: '/calendar',
     title: 'Calendar',
     description: 'Upcoming events, festivals, live performances, and community happenings across Lee County.',
+    label: 'Lee County Events',
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading calendar…</div>}>
+        <CalendarPage />
+      </Suspense>
+    ),
   },
   {
     path: '/artisans',
@@ -195,6 +204,8 @@ const pages = [
         location: 'Caylor, Lee County',
         image: crockettStudio,
         imageAlt: 'Crockett Studio artwork and countryside view',
+        imageWidth: 512,
+        imageHeight: 300,
         description:
           'Located on the Wilderness Road Artisan Trail in Caylor, Crockett Studio features paintings inspired by the Virginia countryside. The studio sits near the Chadwell Station Trailhead in Cumberland Gap National Historical Park, with a view from the windows that feels like part of the work.',
         note: 'Open by appointment.',
@@ -234,7 +245,11 @@ const pages = [
     label: 'OpenStreetMap Directory',
     intro:
       'Browse businesses and visitor stops mapped around Lee County. Results come from OpenStreetMap through the free Overpass API and update as the community improves the map.',
-    content: <DineShopPlaces />,
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading business directory…</div>}>
+        <DineShopPlaces />
+      </Suspense>
+    ),
   },
   {
     path: '/lodging',

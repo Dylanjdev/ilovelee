@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import logo from '../assets/logo.webp'
 import leecobridge from '../assets/leecobridge.webp'
 import whiterock from '../assets/whiterock.webp'
 import sandcaves from '../assets/sandcavee.webp'
@@ -94,12 +93,12 @@ const destinations = [
 const initialDestinationCount = 6
 
 const partnerLogos = [
-	{ image: leeco1, alt: 'Lee County tourism partner logo 1' },
-	{ image: leeco2, alt: 'Lee County tourism partner logo 2', href: 'https://www.proartva.org/' },
-	{ image: leeco3, alt: 'Lee County tourism partner logo 3', href: 'https://www.virginia.org/' },
-	{ image: leeco4, alt: 'Lee County tourism partner logo 4', href: 'https://thecrookedroadva.com/' },
-	{ image: leeco5, alt: 'Lee County tourism partner logo 5', href: 'https://heartofappalachia.com/' },
-	{ image: leeco6, alt: 'Lee County tourism partner logo 6', href: 'https://vca.virginia.gov/' },
+	{ image: leeco1, alt: 'Lee County, Virginia', width: 190, height: 190 },
+	{ image: leeco2, alt: 'Pro-Art Association', width: 139, height: 80, href: 'https://www.proartva.org/' },
+	{ image: leeco3, alt: 'Virginia is for Lovers', width: 112, height: 80, href: 'https://www.virginia.org/' },
+	{ image: leeco4, alt: 'The Crooked Road', width: 98, height: 87, href: 'https://thecrookedroadva.com/' },
+	{ image: leeco5, alt: 'Heart of Appalachia', width: 88, height: 87, href: 'https://heartofappalachia.com/' },
+	{ image: leeco6, alt: 'Virginia Commission for the Arts', width: 98, height: 80, href: 'https://vca.virginia.gov/' },
 ]
 
 function Home() {
@@ -134,7 +133,10 @@ function Home() {
 				<div className="section-shell hero-layout">
 					<div className="hero-content">
 						<p className="hero-label">Welcome to Lee County, Virginia</p>
-						<h1>Your Mountain Basecamp for Scenic Roads, Outdoor Adventure, and Local Stories</h1>
+						<h1>I Love Lee</h1>
+						<p className="hero-tagline">
+							Your Mountain Basecamp for Scenic Roads, Outdoor Adventure, and Local Stories
+						</p>
 						<p>
 							Set in the far southwest corner of the Commonwealth, Lee County is
 							where Appalachian landscapes and community tradition come together.
@@ -151,7 +153,7 @@ function Home() {
 							alt="Scenic bridge in Lee County, Virginia"
 							width="500"
 							height="335"
-							decoding="async"
+							decoding="sync"
 							fetchPriority="high"
 							loading="eager"
 						/>
@@ -207,7 +209,7 @@ function Home() {
 											className={`dest-image${destination.imageFit === 'contain' ? ' dest-image-contain' : ''}`}
 											style={{
 												backgroundImage: loadDeferredMedia
-													? `url(${destination.image ?? logo})`
+											? `url(${destination.image ?? ilovelee})`
 													: undefined,
 											}}
 											aria-hidden="true"
@@ -266,11 +268,13 @@ function Home() {
 						className="story-main-image"
 						src={justoff}
 						alt="Scenic view just off the Wilderness Road"
+						width="678"
+						height="253"
 						loading="lazy"
 						decoding="async"
 					/>
 					<div className="story-inset-image">
-						<img src={wilder} alt="Wilderness Road historic scene" loading="lazy" decoding="async" />
+						<img src={wilder} alt="Wilderness Road historic scene" width="678" height="382" loading="lazy" decoding="async" />
 						<span>Wilderness Road heritage</span>
 					</div>
 				</div>
@@ -305,7 +309,10 @@ function Home() {
 				</div>
 				<div className="contact-layout">
 					<div className="contact-image">
-						<img src={ilovelee} alt="I Love Lee County tourism graphic" loading="lazy" decoding="async" />
+						<div className="contact-brand-art">
+							<img src={ilovelee} alt="I Love Lee Virginia" width="682" height="406" loading="lazy" decoding="async" />
+							<a href="https://discoverleeva.com/">discoverleeva.com</a>
+						</div>
 					</div>
 					<div className="contact-grid">
 						<div>
@@ -346,11 +353,11 @@ function Home() {
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<img src={partner.image} alt={partner.alt} loading="lazy" decoding="async" />
+								<img src={partner.image} alt={partner.alt} width={partner.width} height={partner.height} loading="lazy" decoding="async" />
 							</a>
 						) : (
 						<div key={partner.alt} className="partner-badge">
-							<img src={partner.image} alt={partner.alt} loading="lazy" decoding="async" />
+							<img src={partner.image} alt={partner.alt} width={partner.width} height={partner.height} loading="lazy" decoding="async" />
 						</div>
 						)
 					))}
