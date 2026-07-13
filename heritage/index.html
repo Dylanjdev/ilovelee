@@ -9,13 +9,48 @@
     />
     <meta name="theme-color" content="#17221b" />
     <link rel="canonical" href="https://discoverleeva.com/heritage/" />
-    <!-- Google tag (gtag.js) -->
-    <script async fetchpriority="low" src="https://www.googletagmanager.com/gtag/js?id=G-B4N71X989N"></script>
+    <!-- Queue analytics immediately, but keep the third-party script off the critical rendering path. -->
     <script>
       window.dataLayer = window.dataLayer || []
       function gtag(){dataLayer.push(arguments)}
       gtag('js', new Date())
       gtag('config', 'G-B4N71X989N')
+
+      ;(function () {
+        var loaded = false
+        var interactionEvents = ['pointerdown', 'keydown']
+
+        function loadAnalytics() {
+          if (loaded) return
+          loaded = true
+          interactionEvents.forEach(function (eventName) {
+            window.removeEventListener(eventName, loadAnalytics)
+          })
+
+          var script = document.createElement('script')
+          script.async = true
+          script.fetchPriority = 'low'
+          script.src = 'https://www.googletagmanager.com/gtag/js?id=G-B4N71X989N'
+          document.head.appendChild(script)
+        }
+
+        function scheduleAnalytics() {
+          window.setTimeout(function () {
+            if ('requestIdleCallback' in window) {
+              window.requestIdleCallback(loadAnalytics, { timeout: 3000 })
+            } else {
+              loadAnalytics()
+            }
+          }, 1500)
+        }
+
+        interactionEvents.forEach(function (eventName) {
+          window.addEventListener(eventName, loadAnalytics, { once: true, passive: true })
+        })
+
+        if (document.readyState === 'complete') scheduleAnalytics()
+        else window.addEventListener('load', scheduleAnalytics, { once: true })
+      })()
     </script>
     <script>
       window.__chromium_devtools_metrics_reporter ||= function () {}
@@ -64,8 +99,10 @@
     <meta name="twitter:image" content="https://discoverleeva.com/ilovelee.webp" />
     <meta name="twitter:image:alt" content="I Love Lee, Virginia" />
     <title>I Love Lee | Lee County Virginia Tourism</title>
-    <script type="module" crossorigin src="/assets/index-DYqDMQyS.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-HziGtJ5n.css">
+    <script type="module" crossorigin src="/assets/index-HzGO6AP9.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DWrFAPlh.css">
+    <link rel="modulepreload" crossorigin href="/assets/PageRoutes-lDIx6AbL.js" />
+    <link rel="preload" as="image" type="image/webp" href="/assets/wilder-Q74Wf2Z6.webp" fetchpriority="high" />
   </head>
   <body>
     <div id="root"></div>
