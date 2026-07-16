@@ -443,15 +443,13 @@
   width: 65%;
   height: 100%;
   object-fit: cover;
-  background-size: cover;
-  background-position: center;
+  object-position: center;
   transition: width 0.35s ease-in-out, filter 0.35s ease, transform 0.45s var(--ease-out);
 }
 
 .dest-image-contain {
   background-color: #f4f1e8;
-  background-size: contain;
-  background-repeat: no-repeat;
+  object-fit: contain;
 }
 
 .dest-dots {

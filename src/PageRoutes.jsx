@@ -241,10 +241,10 @@ const pages = [
   {
     path: '/dine-shop',
     title: 'Dine & Shop',
-    description: 'Find Lee County restaurants, cafes, shops, stores, lodging, and local services with live OpenStreetMap data.',
-    label: 'OpenStreetMap Directory',
+    description: 'Find approved Lee County restaurants, cafes, shops, stores, lodging, and local services.',
+    label: 'Lee County Business Directory',
     intro:
-      'Browse businesses and visitor stops mapped around Lee County. Results come from OpenStreetMap through the free Overpass API and update as the community improves the map.',
+      'Browse locally submitted business listings, or send your business information to the directory administrator for review.',
     content: (
       <Suspense fallback={<div className="route-loading" role="status">Loading business directory…</div>}>
         <DineShopPlaces />

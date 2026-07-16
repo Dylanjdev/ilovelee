@@ -28,6 +28,14 @@ http://127.0.0.1:5173/calendar
 6. The person opens the email link, arrives on the Calendar page, and creates a password in the form that opens automatically.
 7. The database trigger automatically adds the new Auth user to `calendar_admins`. No additional SQL is needed.
 
+Under **Authentication > Email Templates > Invite user**, keep the invite button linked to `{{ .ConfirmationURL }}`. If you use a custom token-hash link instead, send both the token and its type to the Calendar page, for example:
+
+```html
+<a href="{{ .SiteURL }}?token_hash={{ .TokenHash }}&type=invite">Accept invitation</a>
+```
+
+The Calendar page supports both formats. Invitation links are one-time links and can expire; a user whose link no longer works can enter their email in the Calendar sign-in form and choose **Set or reset password**.
+
 You can alternatively choose **Create new user** and assign a password yourself. Invited and manually created Auth users receive the same calendar permissions.
 
 Before creating users, open **Authentication > Sign In / Providers > Email** and turn off **Allow new users to sign up**. This is required because every Auth user receives calendar access automatically. The site intentionally has no public sign-up form.

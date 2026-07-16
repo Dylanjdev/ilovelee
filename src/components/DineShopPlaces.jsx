@@ -1,706 +1,1239 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import './DineShopPlaces.css'
 
-const overpassEndpoints = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.openstreetmap.ru/api/interpreter',
-]
-const cachePrefix = 'lee-county-overpass'
-const cacheDurationMs = 24 * 60 * 60 * 1000
-const inflightRequests = new Map()
-const loadingCardCount = 9
-
-const fallbackPlaces = [
-  {
-    id: 'fallback-lee-theatre',
-    name: 'Lee Theatre',
-    category: 'Theatre',
-    groups: ['services'],
-    address: 'Pennington Gap, VA',
-    website: 'https://www.leetheatre.org/',
-  },
-  {
-    id: 'fallback-crockett-studio',
-    name: 'Crockett Studio',
-    category: 'Artisan studio',
-    groups: ['shops'],
-    address: 'Caylor, Lee County, VA',
-    phone: '276-445-4967',
-    website: 'mailto:sscrockett@peoplepc.com',
-  },
-  {
-    id: 'fallback-wolfe-gilbert-house',
-    name: 'Wolfe-Gilbert House',
-    category: 'Lodging',
-    groups: ['lodging'],
-    address: '193 Wolfe-Gilbert Rd., Dryden, VA 24243',
-    phone: '276-220-4169',
-    website: 'https://www.vacationlee.com/',
-  },
-  {
-    id: 'fallback-mothers-place',
-    name: "Mother's Place",
-    category: 'Lodging',
-    groups: ['lodging'],
-    address: '1054 Big Hill Rd, Pennington Gap, VA 24277',
-    phone: '276-220-4169',
-    website: 'http://www.vacationlee.com/',
-  },
-  {
-    id: 'fallback-leeman-field',
-    name: 'Leeman Field RV Park and Campground',
-    category: 'Campground',
-    groups: ['lodging'],
-    address: 'Pennington Gap, VA',
-    phone: '276-298-5177',
-    website: 'https://townofpenningtonva.gov/campground-information/',
-  },
-  {
-    id: 'fallback-wilderness-road-campground',
-    name: 'Wilderness Road Campground',
-    category: 'Campground',
-    groups: ['lodging'],
-    address: 'Cumberland Gap National Historical Park',
-    phone: '606-248-2817',
-    website: 'https://www.nps.gov/cuga/index.htm',
-  },
-  {
-    id: 'fallback-wilderness-road-primitive-camping',
-    name: 'Wilderness Road State Park Primitive Group Camping',
-    category: 'Campground',
-    groups: ['lodging'],
-    address: '8051 Wilderness Road, Ewing, VA 24248',
-    phone: '276-445-3065',
-    website: 'https://www.dcr.virginia.gov/state-parks/wilderness-road',
-  },
-  {
-    id: 'fallback-rock-bottom',
-    name: 'Rock Bottom Horse Camp',
-    category: 'Campground',
-    groups: ['lodging'],
-    address: '375 Cherokee Hills Ln, Ewing, VA 24248',
-    phone: '276-445-6676',
-    website: 'https://www.rockbottomhorsecamp.com/',
-  },
-  {
-    id: 'fallback-floras-retreats',
-    name: "Flora's Retreats",
-    category: 'Lodging',
-    groups: ['lodging'],
-    address: '290 Spyglass Dr., Jonesville, VA 24263',
-    phone: '812-881-4355',
-    website: 'https://www.florasretreats.com/',
-  },
-  {
-    id: 'fallback-home-place',
-    name: 'The Home Place',
-    category: 'Lodging',
-    groups: ['lodging'],
-    address: 'Pennington Gap, VA',
-    website: 'https://www.airbnb.com/rooms/669810163221412690',
-  },
-  {
-    id: 'fallback-hb-cabin',
-    name: 'H&B Cabin and Farm at Wilder Bent',
-    category: 'Lodging',
-    groups: ['lodging'],
-    address: 'Wilder Bent Drive, Jonesville, VA 24263',
-    website: 'https://airbnb.com/h/hbcabinandfarm',
-  },
-  {
-    id: 'fallback-cedar-hill',
-    name: 'Cedar Hills Country Club',
-    category: 'Local stop',
-    groups: ['services'],
-    address: 'Jonesville, VA',
-    phone: '276-346-1535',
-  },
-  {
-    id: 'fallback-town-of-jonesville',
-    name: 'Town of Jonesville',
-    category: 'Community office',
-    groups: ['services'],
-    address: '842 Park Street, Jonesville, VA 24263',
-    phone: '276-346-1151',
-    website: 'http://www.townofjonesville.org/',
-  },
-  {
-    id: 'fallback-town-of-pennington-gap',
-    name: 'Town of Pennington Gap',
-    category: 'Community office',
-    groups: ['services'],
-    address: 'Pennington Gap, VA',
-    phone: '276-546-1177',
-    website: 'http://www.townofpenningtonva.gov/',
-  },
-  {
-    id: 'fallback-karlan-mansion',
-    name: 'Karlan Mansion at Wilderness Road State Park',
-    category: 'Event venue',
-    groups: ['services'],
-    address: 'Ewing, VA',
-    phone: '276-445-3065',
-    website: 'https://www.dcr.virginia.gov/state-parks/wilderness-road',
-  },
-  {
-    id: 'fallback-thomas-walker-pavilion',
-    name: 'Thomas Walker Park Pavilion',
-    category: 'Event venue',
-    groups: ['services'],
-    address: 'Ewing, VA',
-    phone: '606-246-1075',
-  },
-  {
-    id: 'fallback-historical-lee-theatre',
-    name: 'Historical Lee Theatre',
-    category: 'Event venue',
-    groups: ['services'],
-    address: 'Pennington Gap, VA',
-    phone: '276-546-4000',
-    website: 'https://www.leetheatre.org/',
-  },
-  {
-    id: 'fallback-stone-mountain-spearhead',
-    name: 'Stone Mountain Spearhead Trail',
-    category: 'Outdoor recreation',
-    groups: ['services'],
-    address: 'Lee County, VA',
-    website: 'https://www.spearheadtrails.com/pages/stone-mountain',
-  },
-  {
-    id: 'fallback-cumberland-gap-park',
-    name: 'Cumberland Gap National Historical Park',
-    category: 'Outdoor recreation',
-    groups: ['services'],
-    address: 'Cumberland Gap Region',
-    website: 'https://www.nps.gov/cuga/index.htm',
-  },
-  {
-    id: 'fallback-lake-keokee',
-    name: 'Lake Keokee',
-    category: 'Outdoor recreation',
-    groups: ['services'],
-    address: 'Keokee, VA',
-    website: 'https://dwr.virginia.gov/waterbody/lake-keokee/',
-  },
-]
-
 const categories = [
-  {
-    id: 'all',
-    label: 'All',
-    filters: [
-      '["amenity"~"^(restaurant|cafe|fast_food|bar|pub|ice_cream|marketplace|bank|fuel|pharmacy|clinic|dentist|veterinary|post_office|library|theatre|cinema|arts_centre|community_centre)$"]',
-      '["shop"]',
-      '["craft"]',
-      '["tourism"~"^(hotel|motel|guest_house|hostel|chalet|camp_site|caravan_site|attraction|museum|gallery|information)$"]',
-    ],
-  },
-  {
-    id: 'restaurants',
-    label: 'Restaurants',
-    filters: ['["amenity"~"^(restaurant|cafe|fast_food|bar|pub|ice_cream)$"]'],
-  },
-  {
-    id: 'shops',
-    label: 'Shops',
-    filters: ['["shop"]', '["craft"]'],
-  },
-  {
-    id: 'groceries',
-    label: 'Groceries',
-    filters: ['["shop"~"^(supermarket|convenience|grocery|greengrocer|bakery|butcher|deli)$"]'],
-  },
-  {
-    id: 'lodging',
-    label: 'Lodging',
-    filters: ['["tourism"~"^(hotel|motel|guest_house|hostel|chalet|camp_site|caravan_site)$"]'],
-  },
-  {
-    id: 'services',
-    label: 'Services',
-    filters: [
-      '["amenity"~"^(bank|fuel|pharmacy|clinic|dentist|veterinary|post_office|library|community_centre)$"]',
-      '["office"]',
-    ],
-  },
+  { id: 'all', label: 'All' },
+  { id: 'restaurants', label: 'Restaurants' },
+  { id: 'shops', label: 'Shops' },
+  { id: 'groceries', label: 'Groceries' },
+  { id: 'lodging', label: 'Lodging' },
+  { id: 'services', label: 'Services' },
+  { id: 'other', label: 'Other' },
 ]
 
-const tagLabels = {
-  amenity: {
-    restaurant: 'Restaurant',
-    cafe: 'Cafe',
-    fast_food: 'Fast food',
-    bar: 'Bar',
-    pub: 'Pub',
-    ice_cream: 'Ice cream',
-    fuel: 'Fuel',
-    bank: 'Bank',
-    pharmacy: 'Pharmacy',
-    clinic: 'Clinic',
-    dentist: 'Dentist',
-    veterinary: 'Veterinary',
-    library: 'Library',
-    post_office: 'Post office',
-    community_centre: 'Community center',
-  },
-  tourism: {
-    hotel: 'Hotel',
-    motel: 'Motel',
-    guest_house: 'Guest house',
-    camp_site: 'Campground',
-    attraction: 'Attraction',
-    museum: 'Museum',
-    gallery: 'Gallery',
-    information: 'Visitor information',
-  },
+const reviewStatuses = [
+  { id: 'pending', label: 'Pending' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'rejected', label: 'Rejected' },
+]
+
+const logoBucket = 'business-logos'
+const maxLogoSize = 2 * 1024 * 1024
+const logoFileExtensions = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
 }
 
-function buildOverpassQuery(filters) {
-  const selectors = filters
-    .flatMap((filter) => [
-      `node${filter}(area.leeCounty);`,
-      `way${filter}(area.leeCounty);`,
-      `relation${filter}(area.leeCounty);`,
-    ])
-    .join('\n')
+const businessColumns = [
+  'id',
+  'name',
+  'category',
+  'description',
+  'address',
+  'phone',
+  'business_email',
+  'website_url',
+  'logo_path',
+  'status',
+  'reviewed_at',
+  'created_at',
+  'updated_at',
+].join(',')
 
-  return `
-    [out:json][timeout:25];
-    area
-      ["boundary"="administrative"]
-      ["admin_level"="6"]
-      ["wikidata"="Q514008"]->.leeCounty;
-    (
-      ${selectors}
-    );
-    out center tags;
-  `
+const emptySubmission = {
+  name: '',
+  category: 'restaurants',
+  description: '',
+  address: '',
+  phone: '',
+  business_email: '',
+  website_url: '',
+  submitter_name: '',
+  submitter_email: '',
+  company: '',
 }
 
-function getCacheKey(categoryId) {
-  return `${cachePrefix}:${categoryId}`
+function categoryLabel(categoryId) {
+  return categories.find((category) => category.id === categoryId)?.label ?? 'Other'
 }
 
-function getFallbackPlaces(categoryId) {
-  if (categoryId === 'all') {
-    return fallbackPlaces
-  }
+function safeWebsiteUrl(value) {
+  if (!value) return null
 
-  if (categoryId === 'restaurants' || categoryId === 'groceries') {
-    return []
-  }
-
-  return fallbackPlaces.filter((place) => place.groups?.includes(categoryId))
-}
-
-function readCachedPlaces(categoryId, { allowExpired = false } = {}) {
   try {
-    const rawCache = window.localStorage.getItem(getCacheKey(categoryId))
-    if (!rawCache) {
-      return null
-    }
-
-    const cache = JSON.parse(rawCache)
-    if (!allowExpired && Date.now() - cache.savedAt > cacheDurationMs) {
-      return null
-    }
-
-    return cache.places
+    const url = new URL(value)
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : null
   } catch {
     return null
   }
 }
 
-function writeCachedPlaces(categoryId, places) {
-  try {
-    window.localStorage.setItem(
-      getCacheKey(categoryId),
-      JSON.stringify({
-        savedAt: Date.now(),
-        places,
-      }),
-    )
-  } catch {
-    // Caching is helpful, but the directory still works if storage is unavailable.
+function normalizeWebsiteUrl(value) {
+  const trimmedValue = value.trim()
+  if (!trimmedValue) return null
+
+  const candidate = /^https?:\/\//i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`
+  const normalizedUrl = safeWebsiteUrl(candidate)
+
+  if (!normalizedUrl) {
+    throw new Error('Enter a valid website address.')
+  }
+
+  return normalizedUrl
+}
+
+function validateLogoFile(file) {
+  if (!file) return
+
+  if (!logoFileExtensions[file.type]) {
+    throw new Error('Upload a JPG, PNG, or WebP logo.')
+  }
+
+  if (file.size > maxLogoSize) {
+    throw new Error('The logo must be 2 MB or smaller.')
   }
 }
 
-function clearCachedPlaces(categoryId) {
-  try {
-    window.localStorage.removeItem(getCacheKey(categoryId))
-  } catch {
-    // Refresh still works if storage is unavailable; it will just skip clearing.
-  }
+function createLogoPath(businessId, file) {
+  const extension = logoFileExtensions[file.type]
+  const uniqueId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return `${businessId}/logo-${uniqueId}.${extension}`
 }
 
-function titleCase(value) {
-  return value
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+function businessLogoUrl(logoPath) {
+  if (!logoPath || !supabase) return null
+  return supabase.storage.from(logoBucket).getPublicUrl(logoPath).data.publicUrl
 }
 
-function getCategoryLabel(tags) {
-  if (tags.amenity) {
-    return tagLabels.amenity[tags.amenity] ?? titleCase(tags.amenity)
-  }
-
-  if (tags.shop) {
-    return titleCase(tags.shop)
-  }
-
-  if (tags.tourism) {
-    return tagLabels.tourism[tags.tourism] ?? titleCase(tags.tourism)
-  }
-
-  if (tags.craft) {
-    return titleCase(tags.craft)
-  }
-
-  if (tags.office) {
-    return `${titleCase(tags.office)} office`
-  }
-
-  return 'Local business'
+function googleMapsUrl(business) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${business.name}, ${business.address}`,
+  )}`
 }
 
-function getAddress(tags) {
-  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const locality = [tags['addr:city'], tags['addr:state'], tags['addr:postcode']].filter(Boolean).join(', ')
-
-  return [street, locality].filter(Boolean).join(' • ')
+function submissionContact(business) {
+  const contact = business.business_submission_contacts
+  return Array.isArray(contact) ? contact[0] : contact
 }
 
-function getGoogleMapsUrl(place) {
-  const addressQuery = place.address?.replace(/\s•\s/g, ', ')
-  const query = addressQuery
-    ? [place.name, addressQuery].filter(Boolean).join(', ')
-    : [place.name, place.lat && place.lon ? `${place.lat},${place.lon}` : 'Lee County, Virginia'].filter(Boolean).join(', ')
-
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+function LoadingCards() {
+  return (
+    <div className="places-grid places-grid-loading" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <article className="place-card place-card-skeleton" key={index}>
+          <div>
+            <span className="skeleton-line skeleton-kicker" />
+            <span className="skeleton-line skeleton-title" />
+            <span className="skeleton-line skeleton-address" />
+          </div>
+          <div className="place-meta">
+            <span className="skeleton-pill" />
+            <span className="skeleton-pill" />
+          </div>
+          <span className="skeleton-button" />
+        </article>
+      ))}
+    </div>
+  )
 }
 
-function getWebsiteLabel(value) {
-  if (value?.startsWith('mailto:')) {
-    return 'Email'
+function BusinessSubmissionForm({ onCancel, onSubmitted }) {
+  const [form, setForm] = useState(emptySubmission)
+  const [logoFile, setLogoFile] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }))
   }
 
-  return 'Website'
-}
-
-function normalizeElement(element) {
-  const tags = element.tags ?? {}
-  const lat = element.lat ?? element.center?.lat
-  const lon = element.lon ?? element.center?.lon
-  const place = {
-    id: `${element.type}-${element.id}`,
-    name: tags.name,
-    category: getCategoryLabel(tags),
-    address: getAddress(tags),
-    phone: tags.phone ?? tags['contact:phone'],
-    website: tags.website ?? tags['contact:website'],
-    lat,
-    lon,
-  }
-
-  return {
-    ...place,
-    googleMapsUrl: getGoogleMapsUrl(place),
-  }
-}
-
-async function requestOverpass(query) {
-  const errors = []
-
-  for (const endpoint of overpassEndpoints) {
-    const controller = new AbortController()
-    const timeoutId = window.setTimeout(() => controller.abort(), 12000)
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setError('')
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'text/plain;charset=UTF-8',
-        },
-        body: query,
+      validateLogoFile(logoFile)
+
+      // A filled honeypot is treated as a successful submission without writing spam.
+      if (form.company) {
+        onSubmitted()
+        return
+      }
+
+      const { data: businessId, error: submitError } = await supabase.rpc('submit_business_listing', {
+        p_name: form.name.trim(),
+        p_category: form.category,
+        p_description: form.description.trim() || null,
+        p_address: form.address.trim(),
+        p_phone: form.phone.trim() || null,
+        p_business_email: form.business_email.trim() || null,
+        p_website_url: normalizeWebsiteUrl(form.website_url),
+        p_submitter_name: form.submitter_name.trim(),
+        p_submitter_email: form.submitter_email.trim(),
       })
 
-      if (response.ok) {
-        return response.json()
+      if (submitError) throw submitError
+      if (!businessId) throw new Error('The submission was saved without a business ID.')
+
+      if (logoFile) {
+        const logoPath = createLogoPath(businessId, logoFile)
+        const { error: uploadError } = await supabase.storage
+          .from(logoBucket)
+          .upload(logoPath, logoFile, {
+            cacheControl: '3600',
+            contentType: logoFile.type,
+            upsert: false,
+          })
+
+        let logoError = uploadError
+
+        if (!logoError) {
+          const { error: attachError } = await supabase.rpc('attach_business_logo', {
+            p_business_id: businessId,
+            p_logo_path: logoPath,
+          })
+          logoError = attachError
+        }
+
+        if (logoError) {
+          setForm(emptySubmission)
+          setLogoFile(null)
+          onSubmitted(
+            'Your business was submitted, but the logo could not be attached. An administrator can add it while reviewing the listing.',
+          )
+          return
+        }
       }
 
-      errors.push(`${new URL(endpoint).hostname} returned ${response.status}`)
-    } catch (error) {
-      errors.push(`${new URL(endpoint).hostname}: ${error.message}`)
+      setForm(emptySubmission)
+      setLogoFile(null)
+      onSubmitted()
+    } catch (submitError) {
+      setError(submitError.message || 'Your business could not be submitted.')
     } finally {
-      window.clearTimeout(timeoutId)
+      setSubmitting(false)
     }
   }
 
-  throw new Error(errors.join('; '))
+  return (
+    <section className="directory-form-card" aria-labelledby="business-submission-title">
+      <div className="directory-card-heading">
+        <div>
+          <p className="directory-eyebrow">Free local listing</p>
+          <h2 id="business-submission-title">Get your business listed</h2>
+          <p>Send us the details below. Your listing will appear after an administrator approves it.</p>
+        </div>
+        <button type="button" className="directory-button button-quiet" onClick={onCancel}>
+          Close
+        </button>
+      </div>
+
+      <form className="directory-form" onSubmit={handleSubmit}>
+        <div className="directory-form-grid">
+          <label>
+            <span>Business name</span>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(event) => updateField('name', event.target.value)}
+              maxLength="140"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Category</span>
+            <select
+              value={form.category}
+              onChange={(event) => updateField('category', event.target.value)}
+            >
+              {categories.slice(1).map((category) => (
+                <option value={category.id} key={category.id}>{category.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field-wide">
+            <span>Business address</span>
+            <input
+              type="text"
+              value={form.address}
+              onChange={(event) => updateField('address', event.target.value)}
+              maxLength="300"
+              placeholder="Street, town, state, and ZIP code"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Business phone</span>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(event) => updateField('phone', event.target.value)}
+              maxLength="50"
+            />
+          </label>
+
+          <label>
+            <span>Public business email</span>
+            <input
+              type="email"
+              value={form.business_email}
+              onChange={(event) => updateField('business_email', event.target.value)}
+              maxLength="254"
+            />
+          </label>
+
+          <label className="field-wide">
+            <span>Website</span>
+            <input
+              type="text"
+              inputMode="url"
+              value={form.website_url}
+              onChange={(event) => updateField('website_url', event.target.value)}
+              maxLength="500"
+              placeholder="https://example.com"
+            />
+          </label>
+
+          <label className="field-wide">
+            <span>Business description</span>
+            <textarea
+              value={form.description}
+              onChange={(event) => updateField('description', event.target.value)}
+              maxLength="2000"
+              rows="5"
+            />
+          </label>
+
+          <label className="field-wide logo-upload-field">
+            <span>Business logo <small>Optional · JPG, PNG, or WebP · 2 MB maximum</small></span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => {
+                setLogoFile(event.target.files?.[0] ?? null)
+                setError('')
+              }}
+            />
+          </label>
+        </div>
+
+        <fieldset className="submitter-fields">
+          <legend>Your contact information</legend>
+          <p>This information is only visible to directory administrators.</p>
+          <div className="directory-form-grid">
+            <label>
+              <span>Your name</span>
+              <input
+                type="text"
+                value={form.submitter_name}
+                onChange={(event) => updateField('submitter_name', event.target.value)}
+                maxLength="140"
+                required
+              />
+            </label>
+            <label>
+              <span>Your email</span>
+              <input
+                type="email"
+                value={form.submitter_email}
+                onChange={(event) => updateField('submitter_email', event.target.value)}
+                maxLength="254"
+                required
+              />
+            </label>
+          </div>
+        </fieldset>
+
+        <label className="directory-honeypot" aria-hidden="true">
+          <span>Company</span>
+          <input
+            type="text"
+            value={form.company}
+            onChange={(event) => updateField('company', event.target.value)}
+            tabIndex="-1"
+            autoComplete="off"
+          />
+        </label>
+
+        {error && <p className="directory-message message-error" role="alert">{error}</p>}
+
+        <div className="directory-form-actions">
+          <button type="submit" className="directory-button button-primary" disabled={submitting}>
+            {submitting ? 'Sending…' : 'Submit for approval'}
+          </button>
+          <button type="button" className="directory-button button-quiet" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  )
 }
 
-async function fetchPlacesForCategory(categoryId, filters) {
-  const cachedPlaces = readCachedPlaces(categoryId)
-
-  if (cachedPlaces) {
-    return {
-      places: cachedPlaces,
-      source: 'cache',
-    }
-  }
-
-  const cacheKey = getCacheKey(categoryId)
-
-  if (!inflightRequests.has(cacheKey)) {
-    inflightRequests.set(
-      cacheKey,
-      requestOverpass(buildOverpassQuery(filters))
-        .then((data) => {
-          const places = Array.from(
-            new Map(
-              (data.elements ?? [])
-                .filter((element) => element.tags?.name)
-                .map(normalizeElement)
-                .map((place) => [place.name.toLowerCase(), place]),
-            ).values(),
-          ).sort((a, b) => a.name.localeCompare(b.name))
-
-          writeCachedPlaces(categoryId, places)
-
-          return {
-            places,
-            source: 'overpass',
-          }
-        })
-        .finally(() => {
-          inflightRequests.delete(cacheKey)
-        }),
-    )
-  }
-
-  return inflightRequests.get(cacheKey)
-}
-
-function DineShopPlaces() {
-  const [activeCategory, setActiveCategory] = useState(categories[0].id)
-  const [places, setPlaces] = useState([])
-  const [status, setStatus] = useState('loading')
+function BusinessEditor({ business, onCancel, onSaved }) {
+  const [form, setForm] = useState(() => ({
+    name: business.name,
+    category: business.category,
+    description: business.description ?? '',
+    address: business.address,
+    phone: business.phone ?? '',
+    business_email: business.business_email ?? '',
+    website_url: business.website_url ?? '',
+    status: business.status,
+  }))
+  const [logoFile, setLogoFile] = useState(null)
+  const [removeLogo, setRemoveLogo] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [dataSource, setDataSource] = useState('')
-  const [refreshCount, setRefreshCount] = useState(0)
+  const contact = submissionContact(business)
+  const currentLogoUrl = businessLogoUrl(business.logo_path)
 
-  const activeFilters = useMemo(
-    () => categories.find((category) => category.id === activeCategory)?.filters ?? categories[0].filters,
-    [activeCategory],
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    let uploadedLogoPath = null
+
+    try {
+      validateLogoFile(logoFile)
+
+      if (logoFile) {
+        uploadedLogoPath = createLogoPath(business.id, logoFile)
+        const { error: uploadError } = await supabase.storage
+          .from(logoBucket)
+          .upload(uploadedLogoPath, logoFile, {
+            cacheControl: '3600',
+            contentType: logoFile.type,
+            upsert: false,
+          })
+
+        if (uploadError) throw uploadError
+      }
+
+      const payload = {
+        name: form.name.trim(),
+        category: form.category,
+        description: form.description.trim() || null,
+        address: form.address.trim(),
+        phone: form.phone.trim() || null,
+        business_email: form.business_email.trim() || null,
+        website_url: normalizeWebsiteUrl(form.website_url),
+        logo_path: uploadedLogoPath ?? (removeLogo ? null : business.logo_path),
+        status: form.status,
+      }
+
+      const { error: saveError } = await supabase
+        .from('businesses')
+        .update(payload)
+        .eq('id', business.id)
+
+      if (saveError) throw saveError
+
+      if (business.logo_path && payload.logo_path !== business.logo_path) {
+        await supabase.storage.from(logoBucket).remove([business.logo_path])
+      }
+
+      onSaved('Business information updated.')
+    } catch (saveError) {
+      if (uploadedLogoPath) {
+        await supabase.storage.from(logoBucket).remove([uploadedLogoPath])
+      }
+      setError(saveError.message || 'The business could not be updated.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="directory-editor" aria-labelledby="business-editor-title">
+      <div className="directory-card-heading">
+        <div>
+          <p className="directory-eyebrow">Directory editor</p>
+          <h3 id="business-editor-title">Edit {business.name}</h3>
+        </div>
+        <button type="button" className="directory-button button-quiet" onClick={onCancel}>
+          Close
+        </button>
+      </div>
+
+      {contact && (
+        <div className="submission-contact">
+          <strong>Submitted by {contact.contact_name}</strong>
+          <a href={`mailto:${contact.contact_email}`}>{contact.contact_email}</a>
+        </div>
+      )}
+
+      <form className="directory-form" onSubmit={handleSubmit}>
+        <div className="directory-form-grid">
+          <label>
+            <span>Business name</span>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(event) => updateField('name', event.target.value)}
+              maxLength="140"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Category</span>
+            <select value={form.category} onChange={(event) => updateField('category', event.target.value)}>
+              {categories.slice(1).map((category) => (
+                <option value={category.id} key={category.id}>{category.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field-wide">
+            <span>Address</span>
+            <input
+              type="text"
+              value={form.address}
+              onChange={(event) => updateField('address', event.target.value)}
+              maxLength="300"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Phone</span>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(event) => updateField('phone', event.target.value)}
+              maxLength="50"
+            />
+          </label>
+
+          <label>
+            <span>Public email</span>
+            <input
+              type="email"
+              value={form.business_email}
+              onChange={(event) => updateField('business_email', event.target.value)}
+              maxLength="254"
+            />
+          </label>
+
+          <label className="field-wide">
+            <span>Website</span>
+            <input
+              type="text"
+              inputMode="url"
+              value={form.website_url}
+              onChange={(event) => updateField('website_url', event.target.value)}
+              maxLength="500"
+            />
+          </label>
+
+          <label className="field-wide">
+            <span>Description</span>
+            <textarea
+              value={form.description}
+              onChange={(event) => updateField('description', event.target.value)}
+              maxLength="2000"
+              rows="5"
+            />
+          </label>
+
+          <div className="field-wide logo-editor-field">
+            <div>
+              <strong>Business logo</strong>
+              <span>JPG, PNG, or WebP · 2 MB maximum</span>
+            </div>
+            {currentLogoUrl && !removeLogo && !logoFile && (
+              <img src={currentLogoUrl} alt={`${business.name} current logo`} />
+            )}
+            <label className="logo-file-label">
+              <span>{business.logo_path ? 'Replace logo' : 'Upload logo'}</span>
+              <input
+                key={removeLogo ? 'remove-logo' : 'keep-logo'}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  setLogoFile(event.target.files?.[0] ?? null)
+                  setRemoveLogo(false)
+                  setError('')
+                }}
+              />
+            </label>
+            {logoFile && <span className="selected-logo-name">Selected: {logoFile.name}</span>}
+            {business.logo_path && (
+              <label className="remove-logo-check">
+                <input
+                  type="checkbox"
+                  checked={removeLogo}
+                  onChange={(event) => {
+                    setRemoveLogo(event.target.checked)
+                    if (event.target.checked) setLogoFile(null)
+                  }}
+                />
+                <span>Remove the current logo</span>
+              </label>
+            )}
+          </div>
+
+          <label>
+            <span>Listing status</span>
+            <select value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+              {reviewStatuses.map((status) => (
+                <option value={status.id} key={status.id}>{status.label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {error && <p className="directory-message message-error" role="alert">{error}</p>}
+
+        <div className="directory-form-actions">
+          <button type="submit" className="directory-button button-primary" disabled={saving}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+          <button type="button" className="directory-button button-quiet" onClick={onCancel} disabled={saving}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  )
+}
+
+function AdminLogin({ onSignedIn }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setError('')
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (signInError) {
+      setError(signInError.message)
+    } else {
+      setPassword('')
+      onSignedIn(data.session)
+    }
+    setSubmitting(false)
+  }
+
+  return (
+    <form className="directory-login" onSubmit={handleSubmit}>
+      <div>
+        <p className="directory-eyebrow">Authorized users</p>
+        <h2>Directory sign in</h2>
+        <p>Use the same administrator account used to manage the calendar.</p>
+      </div>
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+      </label>
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          required
+        />
+      </label>
+      {error && <p className="directory-message message-error" role="alert">{error}</p>}
+      <button type="submit" className="directory-button button-primary" disabled={submitting}>
+        {submitting ? 'Signing in…' : 'Sign in'}
+      </button>
+    </form>
+  )
+}
+
+function DirectoryAdminPanel({
+  session,
+  sessionLoading,
+  accessLoading,
+  isAdmin,
+  businesses,
+  loading,
+  error,
+  onSignedIn,
+  onSignOut,
+  onChanged,
+}) {
+  const [activeStatus, setActiveStatus] = useState('pending')
+  const [editingBusiness, setEditingBusiness] = useState(null)
+  const [notice, setNotice] = useState('')
+  const [updatingId, setUpdatingId] = useState(null)
+
+  const statusCounts = useMemo(
+    () => Object.fromEntries(
+      reviewStatuses.map((status) => [
+        status.id,
+        businesses.filter((business) => business.status === status.id).length,
+      ]),
+    ),
+    [businesses],
   )
 
-  useEffect(() => {
-    let isCurrent = true
+  const visibleBusinesses = useMemo(
+    () => businesses.filter((business) => business.status === activeStatus),
+    [activeStatus, businesses],
+  )
 
-    async function fetchPlaces() {
-      setStatus('loading')
-      setError('')
+  const updateStatus = async (business, status) => {
+    setUpdatingId(business.id)
+    setNotice('')
 
-      try {
-        const result = await fetchPlacesForCategory(activeCategory, activeFilters)
+    const { error: updateError } = await supabase
+      .from('businesses')
+      .update({ status })
+      .eq('id', business.id)
 
-        if (!isCurrent) {
-          return
-        }
-
-        setPlaces(result.places)
-        setDataSource(result.source)
-        setStatus('ready')
-      } catch (placesError) {
-        if (!isCurrent) {
-          return
-        }
-
-        const stalePlaces = readCachedPlaces(activeCategory, { allowExpired: true })
-
-        if (stalePlaces) {
-          setPlaces(stalePlaces)
-          setDataSource('stale-cache')
-          setError(placesError.message)
-          setStatus('ready')
-          return
-        }
-
-        setPlaces(getFallbackPlaces(activeCategory))
-        setDataSource('fallback')
-        setError(placesError.message)
-        setStatus('ready')
-      }
+    if (updateError) {
+      setNotice(`Could not update ${business.name}: ${updateError.message}`)
+    } else {
+      setNotice(`${business.name} was ${status === 'approved' ? 'approved' : 'rejected'}.`)
+      await onChanged()
     }
-
-    fetchPlaces()
-
-    return () => {
-      isCurrent = false
-    }
-  }, [activeCategory, activeFilters, refreshCount])
-
-  function refreshPlaces() {
-    clearCachedPlaces(activeCategory)
-    setRefreshCount((count) => count + 1)
+    setUpdatingId(null)
   }
 
-  function selectCategory(categoryId) {
-    if (categoryId === activeCategory) {
+  const deleteBusiness = async (business) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${business.name}? This cannot be undone.`,
+    )
+    if (!confirmed) return
+
+    setUpdatingId(business.id)
+    setNotice('')
+
+    const { data: deletedBusiness, error: deleteError } = await supabase
+      .from('businesses')
+      .delete()
+      .eq('id', business.id)
+      .select('id')
+      .maybeSingle()
+
+    if (deleteError || !deletedBusiness) {
+      setNotice(
+        `Could not delete ${business.name}: ${deleteError?.message || 'The listing was not found or access was denied.'}`,
+      )
+      setUpdatingId(null)
       return
     }
 
-    setPlaces([])
-    setStatus('loading')
-    setActiveCategory(categoryId)
+    let logoCleanupError = null
+    if (business.logo_path) {
+      const { error: removeError } = await supabase.storage
+        .from(logoBucket)
+        .remove([business.logo_path])
+      logoCleanupError = removeError
+    }
+
+    setNotice(
+      logoCleanupError
+        ? `${business.name} was deleted. Its old logo could not be removed from Storage.`
+        : `${business.name} was permanently deleted.`,
+    )
+    await onChanged()
+    setUpdatingId(null)
+  }
+
+  const handleSaved = async (message) => {
+    setEditingBusiness(null)
+    setNotice(message)
+    await onChanged()
+  }
+
+  if (sessionLoading) {
+    return <p className="admin-access-status" role="status">Checking directory access…</p>
+  }
+
+  if (!session) {
+    return <AdminLogin onSignedIn={onSignedIn} />
+  }
+
+  if (accessLoading) {
+    return <p className="admin-access-status" role="status">Checking directory access…</p>
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="directory-access-denied" role="alert">
+        <div>
+          <strong>This account does not have directory access.</strong>
+          <p>Directory access is available to approved calendar administrators.</p>
+        </div>
+        <button type="button" className="directory-button button-quiet" onClick={onSignOut}>Sign out</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="directory-admin-content">
+      <div className="directory-admin-account">
+        <div>
+          <p className="directory-eyebrow">Directory administrator</p>
+          <strong>{session.user.email}</strong>
+        </div>
+        <button type="button" className="directory-button button-quiet" onClick={onSignOut}>Sign out</button>
+      </div>
+
+      {notice && (
+        <p
+          className={`directory-message${notice.startsWith('Could not') ? ' message-error' : ' message-success'}`}
+          role="status"
+        >
+          {notice}
+        </p>
+      )}
+
+      {editingBusiness ? (
+        <BusinessEditor
+          key={editingBusiness.id}
+          business={editingBusiness}
+          onCancel={() => setEditingBusiness(null)}
+          onSaved={handleSaved}
+        />
+      ) : (
+        <>
+          <div className="review-toolbar" role="group" aria-label="Submission status">
+            {reviewStatuses.map((status) => (
+              <button
+                type="button"
+                className={activeStatus === status.id ? 'active' : undefined}
+                aria-pressed={activeStatus === status.id}
+                onClick={() => setActiveStatus(status.id)}
+                key={status.id}
+              >
+                {status.label} <span>{statusCounts[status.id] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+
+          {loading && <p className="admin-access-status" role="status">Loading business submissions…</p>}
+          {error && <p className="directory-message message-error" role="alert">{error}</p>}
+
+          {!loading && !error && visibleBusinesses.length === 0 && (
+            <div className="directory-empty-state">
+              <h3>No {activeStatus} listings</h3>
+              <p>Listings with this status will appear here.</p>
+            </div>
+          )}
+
+          {!loading && !error && visibleBusinesses.length > 0 && (
+            <div className="review-list">
+              {visibleBusinesses.map((business) => {
+                const contact = submissionContact(business)
+                const isUpdating = updatingId === business.id
+                const logoUrl = businessLogoUrl(business.logo_path)
+
+                return (
+                  <article className="review-card" key={business.id}>
+                    <div className="review-card-heading">
+                      <div className="review-business-identity">
+                        {logoUrl && <img src={logoUrl} alt={`${business.name} logo`} />}
+                        <div>
+                          <p className="place-category">{categoryLabel(business.category)}</p>
+                          <h3>{business.name}</h3>
+                        </div>
+                      </div>
+                      <span className={`status-badge status-${business.status}`}>{business.status}</span>
+                    </div>
+                    <p>{business.address}</p>
+                    {business.description && <p>{business.description}</p>}
+                    {contact && (
+                      <p className="review-submitter">
+                        Submitted by {contact.contact_name} ·{' '}
+                        <a href={`mailto:${contact.contact_email}`}>{contact.contact_email}</a>
+                      </p>
+                    )}
+                    <div className="review-actions">
+                      <button
+                        type="button"
+                        className="directory-button button-quiet"
+                        onClick={() => setEditingBusiness(business)}
+                      >
+                        Edit information
+                      </button>
+                      {business.status !== 'approved' && (
+                        <button
+                          type="button"
+                          className="directory-button button-approve"
+                          onClick={() => updateStatus(business, 'approved')}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? 'Saving…' : 'Approve'}
+                        </button>
+                      )}
+                      {business.status !== 'rejected' && (
+                        <button
+                          type="button"
+                          className="directory-button button-reject"
+                          onClick={() => updateStatus(business, 'rejected')}
+                          disabled={isUpdating}
+                        >
+                          Reject
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="directory-button button-delete"
+                        onClick={() => deleteBusiness(business)}
+                        disabled={isUpdating}
+                      >
+                        {isUpdating ? 'Working…' : 'Delete listing'}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function PublicBusinessCard({ business }) {
+  const websiteUrl = safeWebsiteUrl(business.website_url)
+  const logoUrl = businessLogoUrl(business.logo_path)
+
+  return (
+    <article className="place-card">
+      {logoUrl && (
+        <div className="place-logo-frame">
+          <img src={logoUrl} alt={`${business.name} logo`} loading="lazy" decoding="async" />
+        </div>
+      )}
+      <div>
+        <p className="place-category">{categoryLabel(business.category)}</p>
+        <h2>{business.name}</h2>
+        {business.description && <p>{business.description}</p>}
+        <a
+          className="place-address-link"
+          href={googleMapsUrl(business)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {business.address}
+        </a>
+      </div>
+      <div className="place-meta">
+        {business.phone && (
+          <a href={`tel:${business.phone.replace(/[^\d+]/g, '')}`}>{business.phone}</a>
+        )}
+        {business.business_email && (
+          <a href={`mailto:${business.business_email}`}>Email</a>
+        )}
+        {websiteUrl && (
+          <a href={websiteUrl} target="_blank" rel="noopener noreferrer">Website</a>
+        )}
+      </div>
+      <a
+        className="place-map-link"
+        href={googleMapsUrl(business)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View on Google Maps
+      </a>
+    </article>
+  )
+}
+
+function DineShopPlaces() {
+  const [businesses, setBusinesses] = useState([])
+  const [loading, setLoading] = useState(isSupabaseConfigured)
+  const [loadError, setLoadError] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [search, setSearch] = useState('')
+  const [submissionOpen, setSubmissionOpen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [session, setSession] = useState(null)
+  const [sessionLoading, setSessionLoading] = useState(isSupabaseConfigured)
+  const [adminUserId, setAdminUserId] = useState(null)
+  const [accessCheckedFor, setAccessCheckedFor] = useState(null)
+  const [adminBusinesses, setAdminBusinesses] = useState([])
+  const [adminLoading, setAdminLoading] = useState(false)
+  const [adminError, setAdminError] = useState('')
+
+  const isAdmin = Boolean(session?.user && adminUserId === session.user.id)
+  const accessLoading = Boolean(session?.user && accessCheckedFor !== session.user.id)
+
+  const loadBusinesses = useCallback(async () => {
+    if (!supabase) return
+    setLoading(true)
+    setLoadError('')
+
+    const { data, error } = await supabase
+      .from('businesses')
+      .select(businessColumns)
+      .eq('status', 'approved')
+      .order('name', { ascending: true })
+
+    if (error) {
+      setBusinesses([])
+      setLoadError(error.message)
+    } else {
+      setBusinesses(data ?? [])
+    }
+    setLoading(false)
+  }, [])
+
+  const loadAdminBusinesses = useCallback(async () => {
+    if (!supabase || !isAdmin) return
+    setAdminLoading(true)
+    setAdminError('')
+
+    const { data, error } = await supabase
+      .from('businesses')
+      .select(`${businessColumns},business_submission_contacts(contact_name,contact_email,created_at)`)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      setAdminBusinesses([])
+      setAdminError(error.message)
+    } else {
+      setAdminBusinesses(data ?? [])
+    }
+    setAdminLoading(false)
+  }, [isAdmin])
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(loadBusinesses, 0)
+    return () => window.clearTimeout(loadTimer)
+  }, [loadBusinesses])
+
+  useEffect(() => {
+    if (!supabase) return undefined
+
+    let active = true
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return
+      setSession(nextSession)
+      setSessionLoading(false)
+      if (!nextSession) {
+        setAdminUserId(null)
+        setAccessCheckedFor(null)
+      }
+    })
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return
+      setSession(data.session)
+      setSessionLoading(false)
+    })
+
+    return () => {
+      active = false
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase || !session?.user) return undefined
+
+    let active = true
+    const userId = session.user.id
+
+    supabase
+      .from('calendar_admins')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return
+        setAdminUserId(Boolean(data) && !error ? userId : null)
+        setAccessCheckedFor(userId)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [session])
+
+  useEffect(() => {
+    if (!isAdmin || !adminOpen) return undefined
+
+    const loadTimer = window.setTimeout(loadAdminBusinesses, 0)
+    return () => window.clearTimeout(loadTimer)
+  }, [adminOpen, isAdmin, loadAdminBusinesses])
+
+  const visibleBusinesses = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+
+    return businesses.filter((business) => {
+      const matchesCategory = activeCategory === 'all' || business.category === activeCategory
+      const matchesSearch = !normalizedSearch || [
+        business.name,
+        business.description,
+        business.address,
+      ].some((value) => value?.toLowerCase().includes(normalizedSearch))
+
+      return matchesCategory && matchesSearch
+    })
+  }, [activeCategory, businesses, search])
+
+  const handleSubmissionComplete = (message) => {
+    setSubmissionOpen(false)
+    setNotice(message || 'Thank you. Your business was submitted and is waiting for administrator approval.')
+    if (isAdmin) loadAdminBusinesses()
+  }
+
+  const handleAdminChanged = async () => {
+    await Promise.all([loadBusinesses(), loadAdminBusinesses()])
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setAdminBusinesses([])
   }
 
   return (
     <section className="places-panel" aria-label="Lee County dining and shopping businesses">
-      <div className="places-toolbar" role="group" aria-label="Business categories">
-        {categories.map((category) => (
+      <div className="directory-action-bar">
+        <div>
+          <strong>Own or manage a Lee County business?</strong>
+          <span>Submit a free listing for review by the directory administrator.</span>
+        </div>
+        <div className="directory-action-buttons">
           <button
-            key={category.id}
             type="button"
-            aria-pressed={activeCategory === category.id}
-            className={activeCategory === category.id ? 'active' : undefined}
-            onClick={() => selectCategory(category.id)}
+            className="directory-button button-primary"
+            onClick={() => {
+              setSubmissionOpen((open) => !open)
+              setNotice('')
+            }}
+            disabled={!isSupabaseConfigured}
           >
-            {category.label}
+            {submissionOpen ? 'Close form' : 'Get your business listed'}
           </button>
-        ))}
+          <button
+            type="button"
+            className="directory-button button-quiet"
+            aria-expanded={adminOpen}
+            aria-controls="directory-admin-panel"
+            onClick={() => setAdminOpen((open) => !open)}
+            disabled={!isSupabaseConfigured}
+          >
+            {isAdmin ? 'Manage directory' : 'Admin sign in'}
+          </button>
+        </div>
       </div>
 
-      {status === 'loading' && (
-        <div className="places-status places-loader" role="status" aria-live="polite">
-          <div id="wifi-loader" aria-hidden="true">
-            <svg className="circle-outer" viewBox="0 0 86 86">
-              <circle className="back" cx="43" cy="43" r="40" />
-              <circle className="front" cx="43" cy="43" r="40" />
-              <circle className="new" cx="43" cy="43" r="40" />
-            </svg>
-            <svg className="circle-middle" viewBox="0 0 60 60">
-              <circle className="back" cx="30" cy="30" r="27" />
-              <circle className="front" cx="30" cy="30" r="27" />
-            </svg>
-            <svg className="circle-inner" viewBox="0 0 34 34">
-              <circle className="back" cx="17" cy="17" r="14" />
-              <circle className="front" cx="17" cy="17" r="14" />
-            </svg>
-            <div className="text" data-text="Searching" />
-          </div>
-          <div className="places-loader-copy">
-            <p>Mapping Lee County businesses...</p>
-            <span>OpenStreetMap is checking restaurants, shops, lodging, and local stops.</span>
-          </div>
+      {!isSupabaseConfigured && (
+        <div className="directory-connection-notice" role="status">
+          <strong>Connect Supabase to use the business directory.</strong>
+          <span>Run the directory SQL and add the project URL and publishable key to the environment.</span>
         </div>
       )}
 
-      {status === 'loading' && (
-        <div className="places-grid places-grid-loading" aria-hidden="true">
-          {Array.from({ length: loadingCardCount }, (_, index) => (
-            <article className="place-card place-card-skeleton" key={index}>
-              <div>
-                <span className="skeleton-line skeleton-kicker" />
-                <span className="skeleton-line skeleton-title" />
-                <span className="skeleton-line skeleton-address" />
-              </div>
-              <div className="place-meta">
-                <span className="skeleton-pill" />
-                <span className="skeleton-pill" />
-              </div>
-              <span className="skeleton-button" />
-            </article>
+      {notice && <p className="directory-message message-success" role="status">{notice}</p>}
+
+      {submissionOpen && isSupabaseConfigured && (
+        <BusinessSubmissionForm
+          onCancel={() => setSubmissionOpen(false)}
+          onSubmitted={handleSubmissionComplete}
+        />
+      )}
+
+      {adminOpen && isSupabaseConfigured && (
+        <section id="directory-admin-panel" className="directory-admin-panel" aria-label="Directory administration">
+          <DirectoryAdminPanel
+            session={session}
+            sessionLoading={sessionLoading}
+            accessLoading={accessLoading}
+            isAdmin={isAdmin}
+            businesses={adminBusinesses}
+            loading={adminLoading}
+            error={adminError}
+            onSignedIn={setSession}
+            onSignOut={handleSignOut}
+            onChanged={handleAdminChanged}
+          />
+        </section>
+      )}
+
+      <div className="directory-search-row">
+        <div className="places-toolbar" role="group" aria-label="Business categories">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              aria-pressed={activeCategory === category.id}
+              className={activeCategory === category.id ? 'active' : undefined}
+              onClick={() => setActiveCategory(category.id)}
+            >
+              {category.label}
+            </button>
           ))}
         </div>
+        <label className="directory-search">
+          <span className="visually-hidden">Search businesses</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search businesses"
+          />
+        </label>
+      </div>
+
+      {loading && (
+        <>
+          <p className="places-status" role="status">Loading approved Lee County businesses…</p>
+          <LoadingCards />
+        </>
       )}
 
-      {status === 'error' && (
-        <div className="places-message">
+      {!loading && loadError && (
+        <div className="places-message" role="alert">
           <h2>Business listings could not load</h2>
-          <p>OpenStreetMap data is temporarily unavailable. {error}</p>
-          <button type="button" onClick={refreshPlaces}>
-            Try again
-          </button>
+          <p>{loadError}</p>
+          <button type="button" onClick={loadBusinesses}>Try again</button>
         </div>
       )}
 
-      {status === 'ready' && (
+      {!loading && !loadError && (
         <>
           <div className="places-summary" aria-live="polite">
             <div>
-              <p>
-                {places.length}{' '}
-                {dataSource === 'fallback' ? 'local starter listings' : 'OpenStreetMap listings'} for this category
-              </p>
-              <span>
-                {dataSource === 'cache' && 'Loaded from saved OpenStreetMap results.'}
-                {dataSource === 'fallback' && 'Showing local starter listings. Refresh to try live OpenStreetMap data.'}
-                {dataSource === 'stale-cache' && 'Showing saved results while Overpass is rate-limited.'}
-                {dataSource === 'overpass' && 'Listings come from open map data and can be improved by the community.'}
-              </span>
+              <p>{visibleBusinesses.length} approved {visibleBusinesses.length === 1 ? 'listing' : 'listings'}</p>
+              <span>Listings are submitted locally and reviewed before publication.</span>
             </div>
-            <button type="button" onClick={refreshPlaces}>
-              Refresh listings
-            </button>
-          </div>
-          <div className="places-osm-note">
-            <p>
-              Businesses are listed automatically from OpenStreetMap. If your business is not shown here, add it to the
-              map and get listed for free.
-            </p>
-            <a
-              href="https://www.openstreetmap.org/search?query=lee+county+va&zoom=18&minlon=-83.03079485893251&minlat=36.757036160455385&maxlon=-83.02307009696962&maxlat=36.76014345478498#map=10/36.7434/-83.2235"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Add your business
-            </a>
+            <button type="button" onClick={loadBusinesses}>Refresh listings</button>
           </div>
 
-          {places.length === 0 ? (
+          {visibleBusinesses.length === 0 ? (
             <div className="places-message">
-              <h2>No local starter listings found</h2>
-              <p>Refresh to try live OpenStreetMap data, try another category, or add missing local businesses to OpenStreetMap.</p>
+              <h2>No approved businesses found</h2>
+              <p>Try another category or search, or submit a local business for approval.</p>
             </div>
           ) : (
             <div className="places-grid">
-              {places.map((place) => (
-                <article className="place-card" key={place.id}>
-                  <div>
-                    <p className="place-category">{place.category}</p>
-                    <h2>{place.name}</h2>
-                    {place.address && (
-                      <a
-                        className="place-address-link"
-                        href={place.googleMapsUrl ?? getGoogleMapsUrl(place)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {place.address}
-                      </a>
-                    )}
-                  </div>
-                  <div className="place-meta">
-                    {place.phone && <a href={`tel:${place.phone.replace(/[^\d+]/g, '')}`}>{place.phone}</a>}
-                    {place.website && (
-                      <a href={place.website} target="_blank" rel="noopener noreferrer">
-                        {getWebsiteLabel(place.website)}
-                      </a>
-                    )}
-                  </div>
-                  <a
-                    className="place-map-link"
-                    href={place.googleMapsUrl ?? getGoogleMapsUrl(place)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View on Google Maps
-                  </a>
-                </article>
+              {visibleBusinesses.map((business) => (
+                <PublicBusinessCard business={business} key={business.id} />
               ))}
             </div>
           )}

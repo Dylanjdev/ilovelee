@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
 const routes = [
@@ -17,6 +17,37 @@ const distDir = 'dist'
 const appShell = join(distDir, 'index.html')
 const appShellHtml = await readFile(appShell, 'utf8')
 const siteOrigin = 'https://discoverleeva.com'
+const assetFiles = await readdir(join(distDir, 'assets'))
+
+const findAsset = (prefix, extension) =>
+  assetFiles.find((file) => file.startsWith(prefix) && file.endsWith(extension))
+
+const pageRoutesChunk = findAsset('PageRoutes-', '.js')
+const routeImagePrefixes = {
+  '/artisans': 'crockettstudio-',
+  '/heritage': 'wilder-',
+  '/lodging': 'WolfeGilburt-',
+  '/outdoors': 'stone--',
+  '/towns': 'TownofJonesvile-',
+  '/weddings': 'karlan-',
+}
+
+function getResourceHints(route) {
+  const hints = []
+  const routeImage = routeImagePrefixes[route]
+    ? findAsset(routeImagePrefixes[route], '.webp')
+    : undefined
+
+  if (pageRoutesChunk) {
+    hints.push(`<link rel="modulepreload" crossorigin href="/assets/${pageRoutesChunk}" />`)
+  }
+
+  if (routeImage) {
+    hints.push(`<link rel="preload" as="image" type="image/webp" href="/assets/${routeImage}" fetchpriority="high" />`)
+  }
+
+  return hints.length ? `    ${hints.join('\n    ')}\n` : ''
+}
 
 await Promise.all(
   routes.map(async (route) => {
@@ -32,6 +63,7 @@ await Promise.all(
         /<meta property="og:url" content="[^"]*" \/>/,
         `<meta property="og:url" content="${canonicalUrl}" />`,
       )
+      .replace('  </head>', `${getResourceHints(route)}  </head>`)
 
     await mkdir(dirname(routeFile), { recursive: true })
     await writeFile(routeFile, routeHtml)

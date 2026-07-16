@@ -40,9 +40,9 @@ const routeFallbacks = {
     description: 'Navigate Lee County, towns, parks, attractions, and scenic stops with a county-wide map view.',
   },
   '/dine-shop': {
-    label: 'OpenStreetMap Directory',
+    label: 'Lee County Business Directory',
     title: 'Dine & Shop',
-    description: 'Find Lee County restaurants, cafes, shops, stores, lodging, and local services with live OpenStreetMap data.',
+    description: 'Find approved Lee County restaurants, cafes, shops, stores, lodging, and local services.',
   },
   '/lodging': {
     label: 'Places to Stay',

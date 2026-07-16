@@ -70,7 +70,7 @@ function SectionPage({
                       width={feature.imageWidth}
                       height={feature.imageHeight}
                       loading={featureIndex === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={featureIndex === 0 ? 'high' : 'auto'}
+                      fetchPriority={featureIndex === 0 ? 'high' : 'low'}
                       decoding="async"
                     />
                   )}
@@ -116,7 +116,7 @@ function SectionPage({
                     src={section.image}
                     alt={section.imageAlt ?? ''}
                     loading={sectionIndex === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={sectionIndex === 0 ? 'high' : 'auto'}
+                    fetchPriority={sectionIndex === 0 ? 'high' : 'low'}
                     decoding="async"
                   />
                 )}

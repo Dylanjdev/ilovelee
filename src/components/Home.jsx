@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import leecobridge from '../assets/leecobridge.webp'
-import whiterock from '../assets/whiterock.webp'
-import sandcaves from '../assets/sandcavee.webp'
-import stoneface from '../assets/stoneface.webp'
-import ceaderhill from '../assets/ceaderhill.webp'
-import leeTheatre from '../assets/LeeThee.webp'
-import stone from '../assets/stone.webp'
-import cgap from '../assets/cgap.webp'
-import keeokee from '../assets/keeokee.webp'
-import coal from '../assets/coal.webp'
+import whiterock from '../assets/whiterock-card.webp'
+import sandcaves from '../assets/sandcave-card.webp'
+import stoneface from '../assets/stoneface-card.webp'
+import ceaderhill from '../assets/ceaderhill-card.webp'
+import leeTheatre from '../assets/leetheatre-card.webp'
+import stone from '../assets/stone-card.webp'
+import cgap from '../assets/cgap-card.webp'
+import keeokee from '../assets/keeokee-card.webp'
+import coal from '../assets/coal-card.webp'
 import justoff from '../assets/justoff.webp'
 import wilder from '../assets/wilder.webp'
 import ilovelee from '../assets/ilovelee.webp'
@@ -101,31 +101,56 @@ const partnerLogos = [
 	{ image: leeco6, alt: 'Virginia Commission for the Arts', width: 98, height: 80, href: 'https://vca.virginia.gov/' },
 ]
 
+function DestinationImage({ image, contain = false }) {
+	const imageRef = useRef(null)
+
+	useEffect(() => {
+		const element = imageRef.current
+		if (!element) return undefined
+
+		const loadImage = () => {
+			if (!element.getAttribute('src')) element.src = image
+		}
+
+		if (!('IntersectionObserver' in window)) {
+			loadImage()
+			return undefined
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) {
+					loadImage()
+					observer.disconnect()
+				}
+			},
+			{ rootMargin: '500px 0px' },
+		)
+
+		observer.observe(element)
+		return () => observer.disconnect()
+	}, [image])
+
+	return (
+		<img
+			ref={imageRef}
+			className={`dest-image${contain ? ' dest-image-contain' : ''}`}
+			alt=""
+			aria-hidden="true"
+			width="640"
+			height="400"
+			loading="lazy"
+			decoding="async"
+			fetchPriority="low"
+		/>
+	)
+}
+
 function Home() {
 	const [showMoreDestinations, setShowMoreDestinations] = useState(false)
-	const [loadDeferredMedia, setLoadDeferredMedia] = useState(false)
 	const visibleDestinations = showMoreDestinations
 		? destinations
 		: destinations.slice(0, initialDestinationCount)
-
-	useEffect(() => {
-		let timeoutId
-
-		const scheduleMedia = () => {
-			timeoutId = window.setTimeout(() => setLoadDeferredMedia(true), 450)
-		}
-
-		if (document.readyState === 'complete') {
-			scheduleMedia()
-		} else {
-			window.addEventListener('load', scheduleMedia, { once: true })
-		}
-
-		return () => {
-			window.removeEventListener('load', scheduleMedia)
-			window.clearTimeout(timeoutId)
-		}
-	}, [])
 
 	return (
 		<div className="home-page">
@@ -205,14 +230,9 @@ function Home() {
 											<span className="dest-region">Lee County, VA</span>
 											<h3>{destination.name}</h3>
 										</div>
-										<div
-											className={`dest-image${destination.imageFit === 'contain' ? ' dest-image-contain' : ''}`}
-											style={{
-												backgroundImage: loadDeferredMedia
-											? `url(${destination.image ?? ilovelee})`
-													: undefined,
-											}}
-											aria-hidden="true"
+										<DestinationImage
+											image={destination.image ?? ilovelee}
+											contain={destination.imageFit === 'contain'}
 										/>
 										<div className="dest-dots" aria-hidden="true">
 											<div className="dest-dot" />

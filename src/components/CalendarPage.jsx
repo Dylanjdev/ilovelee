@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { initialAuthCallbackType, isSupabaseConfigured, supabase } from '../lib/supabase'
+import {
+  completeInitialAuthCallback,
+  initialAuthCallback,
+  isSupabaseConfigured,
+  supabase,
+} from '../lib/supabase'
 import './CalendarPage.css'
 
 const EVENT_TIME_ZONE = 'America/New_York'
@@ -407,7 +412,8 @@ function AdminAccess({
   sessionLoading,
   isAdmin,
   accessLoading,
-  passwordSetupRequired,
+  passwordSetupReason,
+  authCallbackError,
   onPasswordSet,
   onSignedIn,
   onSignOut,
@@ -418,19 +424,49 @@ function AdminAccess({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
   const handleLogin = async (event) => {
     event.preventDefault()
     setSubmitting(true)
     setError('')
+    setMessage('')
 
     const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (loginError) {
-      setError(loginError.message)
+      setError(
+        loginError.code === 'invalid_credentials'
+          ? 'The email or password is incorrect. If you accepted an invitation but never created a password, use “Set or reset password” below.'
+          : loginError.message,
+      )
     } else {
       setPassword('')
       onSignedIn(data.session)
+    }
+    setSubmitting(false)
+  }
+
+  const handlePasswordReset = async () => {
+    const normalizedEmail = email.trim()
+    setError('')
+    setMessage('')
+
+    if (!normalizedEmail) {
+      setError('Enter your email address first, then choose “Set or reset password.”')
+      return
+    }
+
+    setSubmitting(true)
+    const redirectTo = `${window.location.origin}${window.location.pathname}`
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo,
+    })
+
+    if (resetError) {
+      setError(resetError.message)
+    } else {
+      setMessage('Check your email for a link to choose your password.')
     }
     setSubmitting(false)
   }
@@ -466,19 +502,26 @@ function AdminAccess({
     return <p className="admin-access-status" role="status">Checking calendar access…</p>
   }
 
-  if (session && passwordSetupRequired) {
+  if (session && passwordSetupReason) {
+    const isRecovery = passwordSetupReason === 'recovery'
+
     return (
       <form className="admin-login-form password-setup-form" onSubmit={handlePasswordSetup}>
         <div className="admin-login-copy">
-          <p className="calendar-eyebrow">Invitation accepted</p>
-          <h2>Create your password</h2>
-          <p>Set a password for {session.user.email} to finish creating your calendar account.</p>
+          <p className="calendar-eyebrow">{isRecovery ? 'Password recovery' : 'Invitation accepted'}</p>
+          <h2>{isRecovery ? 'Choose a new password' : 'Create your password'}</h2>
+          <p>
+            {isRecovery
+              ? `Choose a new password for ${session.user.email}.`
+              : `Set a password for ${session.user.email} to finish creating your calendar account.`}
+          </p>
         </div>
         <label>
           <span>New password</span>
           <input
             type="password"
             autoComplete="new-password"
+            autoFocus
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
             minLength="12"
@@ -560,10 +603,24 @@ function AdminAccess({
           required
         />
       </label>
+      {authCallbackError && (
+        <p className="calendar-message message-error" role="alert">{authCallbackError}</p>
+      )}
       {error && <p className="calendar-message message-error" role="alert">{error}</p>}
-      <button className="calendar-button button-primary" type="submit" disabled={submitting}>
-        {submitting ? 'Signing in…' : 'Sign in'}
-      </button>
+      {message && <p className="calendar-message message-success" role="status">{message}</p>}
+      <div className="admin-login-actions">
+        <button className="calendar-button button-primary" type="submit" disabled={submitting}>
+          {submitting ? 'Please wait…' : 'Sign in'}
+        </button>
+        <button
+          className="calendar-button button-quiet"
+          type="button"
+          disabled={submitting}
+          onClick={handlePasswordReset}
+        >
+          Set or reset password
+        </button>
+      </div>
     </form>
   )
 }
@@ -636,17 +693,30 @@ function CalendarPage() {
   const [sessionLoading, setSessionLoading] = useState(isSupabaseConfigured)
   const [adminUserId, setAdminUserId] = useState(null)
   const [accessCheckedFor, setAccessCheckedFor] = useState(null)
-  const [passwordSetupRequired, setPasswordSetupRequired] = useState(
-    () => initialAuthCallbackType === 'invite' || initialAuthCallbackType === 'recovery',
+  const [passwordSetupReason, setPasswordSetupReason] = useState(
+    () => (
+      ['invite', 'recovery'].includes(initialAuthCallback.type) && !initialAuthCallback.errorDescription
+        ? initialAuthCallback.type
+        : null
+    ),
   )
   const [adminOpen, setAdminOpen] = useState(
-    () => initialAuthCallbackType === 'invite' || initialAuthCallbackType === 'recovery',
+    () => initialAuthCallback.hasAuthParams || ['invite', 'recovery'].includes(initialAuthCallback.type),
   )
+  const [passwordModalDismissed, setPasswordModalDismissed] = useState(false)
+  const [authCallbackError, setAuthCallbackError] = useState(() => (
+    initialAuthCallback.errorDescription
+      ? `The email link could not be used: ${initialAuthCallback.errorDescription}`
+      : ''
+  ))
   const [editingEvent, setEditingEvent] = useState(null)
   const [creatingEvent, setCreatingEvent] = useState(false)
   const [notice, setNotice] = useState('')
   const isAdmin = Boolean(session?.user && adminUserId === session.user.id)
   const accessLoading = Boolean(session?.user && accessCheckedFor !== session.user.id)
+  const passwordModalOpen = Boolean(
+    isSupabaseConfigured && passwordSetupReason && !passwordModalDismissed,
+  )
   const upcomingStart = useMemo(
     () => zonedDateTimeToIso(eventDateKey(today)),
     [today],
@@ -714,18 +784,22 @@ function CalendarPage() {
     if (!supabase) return undefined
 
     let active = true
-    supabase.auth.getSession().then(({ data }) => {
-      if (active) {
-        setSession(data.session)
-        setSessionLoading(false)
-      }
-    })
-
     const { data: authListener } = supabase.auth.onAuthStateChange((authEvent, nextSession) => {
       setSession(nextSession)
       setSessionLoading(false)
       if (authEvent === 'PASSWORD_RECOVERY') {
-        setPasswordSetupRequired(true)
+        setPasswordSetupReason('recovery')
+        setPasswordModalDismissed(false)
+        setAdminOpen(true)
+      }
+      if (
+        authEvent === 'SIGNED_IN' &&
+        !initialAuthCallback.type &&
+        initialAuthCallback.hasAuthParams &&
+        nextSession?.user.invited_at
+      ) {
+        setPasswordSetupReason('invite')
+        setPasswordModalDismissed(false)
         setAdminOpen(true)
       }
       if (!nextSession) {
@@ -733,6 +807,49 @@ function CalendarPage() {
         setAccessCheckedFor(null)
       }
     })
+
+    const initializeSession = async () => {
+      const { data: callbackData, error: callbackError } = await completeInitialAuthCallback()
+      if (!active) return
+
+      if (callbackError) {
+        setPasswordSetupReason(null)
+        setAuthCallbackError(
+          `The email link could not be used: ${callbackError.message}. It may have expired or already been used.`,
+        )
+      }
+
+      const { data, error: sessionError } = await supabase.auth.getSession()
+      if (!active) return
+
+      const nextSession = callbackData.session ?? data.session
+      setSession(nextSession)
+      setSessionLoading(false)
+
+      if (sessionError) {
+        setAuthCallbackError(`Calendar sign-in could not be completed: ${sessionError.message}`)
+      } else if (
+        initialAuthCallback.hasAuthParams &&
+        !initialAuthCallback.errorDescription &&
+        !callbackError &&
+        !nextSession
+      ) {
+        setPasswordSetupReason(null)
+        setAuthCallbackError(
+          'This invitation link did not create a sign-in session. It may have expired or already been used. Enter your email below and choose “Set or reset password.”',
+        )
+      } else if (
+        nextSession?.user.invited_at &&
+        initialAuthCallback.hasAuthParams &&
+        !['invite', 'recovery'].includes(initialAuthCallback.type)
+      ) {
+        setPasswordSetupReason('invite')
+        setPasswordModalDismissed(false)
+        setAdminOpen(true)
+      }
+    }
+
+    initializeSession()
 
     return () => {
       active = false
@@ -760,6 +877,25 @@ function CalendarPage() {
       active = false
     }
   }, [session])
+
+  useEffect(() => {
+    if (!passwordModalOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Escape') return
+      setPasswordModalDismissed(true)
+      setAdminOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [passwordModalOpen])
 
   useEffect(() => {
     const loadTimer = window.setTimeout(loadEvents, 0)
@@ -845,9 +981,26 @@ function CalendarPage() {
   }
 
   const handlePasswordSet = () => {
-    setPasswordSetupRequired(false)
+    setPasswordSetupReason(null)
+    setPasswordModalDismissed(false)
+    setAuthCallbackError('')
     setNotice('Your password was created. You are signed in and can manage the calendar.')
     window.history.replaceState({}, document.title, window.location.pathname)
+  }
+
+  const handleAdminToggle = () => {
+    if (passwordSetupReason) {
+      setPasswordModalDismissed(false)
+      setAdminOpen(true)
+      return
+    }
+
+    setAdminOpen((open) => !open)
+  }
+
+  const handlePasswordModalClose = () => {
+    setPasswordModalDismissed(true)
+    setAdminOpen(false)
   }
 
   return (
@@ -857,9 +1010,9 @@ function CalendarPage() {
         <button
           type="button"
           className={`calendar-button ${isAdmin ? 'button-quiet' : 'button-primary'}`}
-          aria-expanded={adminOpen}
-          aria-controls="calendar-admin-panel"
-          onClick={() => setAdminOpen((open) => !open)}
+          aria-expanded={adminOpen || passwordModalOpen}
+          aria-controls={passwordSetupReason ? 'calendar-password-modal' : 'calendar-admin-panel'}
+          onClick={handleAdminToggle}
         >
           {isAdmin ? 'Manage calendar' : 'Sign in to manage events'}
         </button>
@@ -884,19 +1037,52 @@ function CalendarPage() {
         </section>
       )}
 
-      {adminOpen && isSupabaseConfigured && (
+      {passwordModalOpen && (
+        <div className="calendar-auth-backdrop">
+          <section
+            id="calendar-password-modal"
+            className="calendar-auth-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={passwordSetupReason === 'recovery' ? 'Reset your password' : 'Create your password'}
+          >
+            <button
+              type="button"
+              className="calendar-auth-modal-close"
+              aria-label="Close password setup"
+              onClick={handlePasswordModalClose}
+            >
+              &times;
+            </button>
+            <AdminAccess
+              session={session}
+              sessionLoading={sessionLoading}
+              isAdmin={isAdmin}
+              accessLoading={accessLoading}
+              passwordSetupReason={passwordSetupReason}
+              authCallbackError={authCallbackError}
+              onPasswordSet={handlePasswordSet}
+              onSignedIn={setSession}
+              onSignOut={handleSignOut}
+            />
+          </section>
+        </div>
+      )}
+
+      {adminOpen && isSupabaseConfigured && !passwordSetupReason && (
         <section id="calendar-admin-panel" className="calendar-admin-panel">
           <AdminAccess
             session={session}
             sessionLoading={sessionLoading}
             isAdmin={isAdmin}
             accessLoading={accessLoading}
-            passwordSetupRequired={passwordSetupRequired}
+            passwordSetupReason={passwordSetupReason}
+            authCallbackError={authCallbackError}
             onPasswordSet={handlePasswordSet}
             onSignedIn={setSession}
             onSignOut={handleSignOut}
           />
-          {isAdmin && !accessLoading && (
+          {isAdmin && !accessLoading && !passwordSetupReason && (
             <button
               type="button"
               className="calendar-button button-primary admin-add-button"
