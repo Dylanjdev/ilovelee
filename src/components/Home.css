@@ -70,8 +70,8 @@
   margin: 0.65rem 0 0;
   color: var(--ink-on-dark);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(3.5rem, 7vw, 6rem);
-  line-height: 0.95;
+  font-size: clamp(2.8rem, 6vw, 5.3rem);
+  line-height: 0.98;
   max-width: none;
   letter-spacing: -0.035em;
 }

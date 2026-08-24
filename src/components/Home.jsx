@@ -27,6 +27,7 @@ const destinations = [
 		location: 'Rose Hill, Lee County',
 		file: 'whiterock.webp',
 		image: whiterock,
+		imageAlt: 'White Rocks Overlook above Powell Valley in Lee County, Virginia',
 		link: 'https://share.google/8QLWpznBGsCLVRV2G',
 		detail: 'Three miles of absolute splendor, one of the most photographed spots in Lee County and a beacon for locals. Worth the drive any time of year. Want to stand on top? The trail begins at Thomas Walker Civic Park.',
 	},
@@ -35,6 +36,7 @@ const destinations = [
 		location: 'Ewing, Lee County',
 		file: 'sandcavvee.webp',
 		image: sandcaves,
+		imageAlt: 'Sand Cave rock shelter in Cumberland Gap National Historical Park',
 		link: 'https://gohikevirginia.com/sand-cave-hike/',
 		detail: 'A unique natural feature and popular family stop.',
 	},
@@ -42,6 +44,7 @@ const destinations = [
 		name: 'Stone Face Rock',
 		location: 'Pennington Gap, Lee County',
 		image: stoneface,
+		imageAlt: 'Stone Face Rock near Pennington Gap in Lee County, Virginia',
 		link: 'https://share.google/FEZySf93tEm87VOsd',
 		detail: 'A signature landmark known for dramatic scenery.',
 	},
@@ -50,6 +53,7 @@ const destinations = [
 		location: 'Jonesville, Lee County',
 		file: 'ceaderhill.webp',
 		image: ceaderhill,
+		imageAlt: 'Cedar Hill Country Club in Jonesville, Virginia',
 		link: 'https://share.google/F6e7uqD0OEB5MpAi8',
 		detail: 'Relaxed recreation with mountain surroundings.',
 	},
@@ -57,12 +61,14 @@ const destinations = [
 		name: 'Stone Mountain ATV Trail',
 		file: 'spearheadtrailsstpaul.jpg',
 		image: stone,
+		imageAlt: 'Stone Mountain ATV Trail terrain in Lee County, Virginia',
 		link: 'https://www.spearheadtrails.com/pages/stone-mountain',
 		detail: 'Adventure routes and multi-day riding opportunities.',
 	},
 	{
 		name: 'Cumberland Gap National Park',
 		image: cgap,
+		imageAlt: 'Cumberland Gap National Historical Park mountain landscape',
 		link: 'https://www.nps.gov/cuga/index.htm',
 		detail: 'Regional heritage and iconic mountain passages.',
 	},
@@ -70,6 +76,7 @@ const destinations = [
 		name: 'Lake Keokee Loop',
 		location: 'Keokee, Lee County',
 		image: keeokee,
+		imageAlt: 'Lake Keokee surrounded by forest in Lee County, Virginia',
 		link: 'https://dwr.virginia.gov/waterbody/lake-keokee/#overview',
 		detail: 'Circle a 92-acre mountain lake on a 3.7-mile loop used for hiking, fishing, picnics, and wildlife watching. The area includes a paved launch ramp and fishing for largemouth bass, bluegill, redear sunfish, and channel catfish.',
 	},
@@ -77,6 +84,7 @@ const destinations = [
 		name: 'Lee Theatre',
 		location: 'Pennington Gap, Lee County',
 		image: leeTheatre,
+		imageAlt: 'Historic Lee Theatre in downtown Pennington Gap, Virginia',
 		link: 'https://www.leetheatre.org/',
 		detail: 'Community entertainment in a historic downtown setting.',
 	},
@@ -84,6 +92,7 @@ const destinations = [
 		name: 'Lee County Coal Heritage Memorial',
 		location: 'Lee County, Virginia',
 		image: coal,
+		imageAlt: 'Lee County Coal Heritage Memorial in Virginia',
 		imageFit: 'contain',
 		link: 'https://share.google/4RzK5GOlDctjm3K2Z',
 		detail: 'A simple, meaningful memorial honoring Lee County coal heritage and the hardworking men, women, and children whose labor shaped Central Appalachia. It also remembers those who were lost while providing for their families.',
@@ -101,7 +110,7 @@ const partnerLogos = [
 	{ image: leeco6, alt: 'Virginia Commission for the Arts', width: 98, height: 80, href: 'https://vca.virginia.gov/' },
 ]
 
-function DestinationImage({ image, contain = false }) {
+function DestinationImage({ image, imageAlt, contain = false }) {
 	const imageRef = useRef(null)
 
 	useEffect(() => {
@@ -135,8 +144,7 @@ function DestinationImage({ image, contain = false }) {
 		<img
 			ref={imageRef}
 			className={`dest-image${contain ? ' dest-image-contain' : ''}`}
-			alt=""
-			aria-hidden="true"
+			alt={imageAlt}
 			width="640"
 			height="400"
 			loading="lazy"
@@ -157,18 +165,18 @@ function Home() {
 			<section className="hero-band">
 				<div className="section-shell hero-layout">
 					<div className="hero-content">
-						<p className="hero-label">Welcome to Lee County, Virginia</p>
-						<h1>I Love Lee</h1>
+						<p className="hero-label">I Love Lee · Official Tourism Guide</p>
+						<h1>Explore Lee County, Virginia</h1>
 						<p className="hero-tagline">
 							Your Mountain Basecamp for Scenic Roads, Outdoor Adventure, and Local Stories
 						</p>
 						<p>
-							Set in the far southwest corner of the Commonwealth, Lee County is
+							Set in the far southwest corner of the Commonwealth, Lee County, VA is
 							where Appalachian landscapes and community tradition come together.
 						</p>
 						<div className="hero-cta">
 							<a href="#destinations">Browse Places</a>
-							<a href="#visit">Plan Your Visit</a>
+							<a href="/visitor-info/">Plan Your Visit</a>
 						</div>
 					</div>
 
@@ -206,7 +214,7 @@ function Home() {
 			<section id="destinations" className="destinations-section reveal section-shell">
 				<div className="destinations-header">
 					<div className="section-heading">
-						<h2>Places to See Across Lee County</h2>
+						<h2>Things to Do in Lee County, VA</h2>
 						<p>
 							Build a day around overlooks, trails, historic landmarks, live
 							performances, and easygoing stops tucked into the mountains.
@@ -232,6 +240,7 @@ function Home() {
 										</div>
 										<DestinationImage
 											image={destination.image ?? ilovelee}
+											imageAlt={destination.imageAlt ?? `${destination.name} in Lee County, Virginia`}
 											contain={destination.imageFit === 'contain'}
 										/>
 										<div className="dest-dots" aria-hidden="true">
@@ -300,7 +309,7 @@ function Home() {
 				</div>
 				<div className="story-copy">
 					<p className="story-kicker">Just off the Wilderness Road</p>
-					<h2>Mountain scenery, local stories, and room to wander.</h2>
+					<h2>Discover Lee County, Virginia and the Cumberland Gap region.</h2>
 					<p>
 						Lee County invites you to slow down and discover the communities,
 						landmarks, and local stories that have shaped the Cumberland Gap

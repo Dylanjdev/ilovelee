@@ -32,6 +32,13 @@
   font-size: 0.86rem;
 }
 
+.calendar-top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
 .calendar-button,
 .month-arrow {
   display: inline-flex;
@@ -56,7 +63,7 @@
 }
 
 .calendar-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
   transform: none;
 }
@@ -95,6 +102,30 @@
 .button-danger:focus-visible {
   color: #ffffff;
   background: #8b1b2a;
+  border-color: #8b1b2a;
+}
+
+.calendar-button.button-approve {
+  color: #ffffff;
+  background: #2f6a41;
+  border-color: #2f6a41;
+}
+
+.calendar-button.button-approve:hover,
+.calendar-button.button-approve:focus-visible {
+  background: #245733;
+  border-color: #245733;
+}
+
+.calendar-button.button-reject {
+  color: #8b1b2a;
+  background: #ffffff;
+  border-color: #d9a6ad;
+}
+
+.calendar-button.button-reject:hover,
+.calendar-button.button-reject:focus-visible {
+  background: #fff5f5;
   border-color: #8b1b2a;
 }
 
@@ -381,6 +412,216 @@
   font-size: clamp(1.4rem, 3vw, 1.85rem);
 }
 
+.event-submission .event-editor-heading > div > p:last-child {
+  margin: 0.45rem 0 0;
+  max-width: 65ch;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.event-submission-modes {
+  display: inline-flex;
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+}
+
+.event-submission-modes button {
+  min-height: 42px;
+  padding: 0.62rem 0.85rem;
+  color: #384352;
+  background: #ffffff;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+.event-submission-modes button + button {
+  border-left: 1px solid var(--line);
+}
+
+.event-submission-modes button:hover,
+.event-submission-modes button:focus-visible,
+.event-submission-modes button.active {
+  color: #ffffff;
+  background: var(--brand);
+  outline: none;
+}
+
+.event-csv-panel {
+  margin-top: 1rem;
+  padding: clamp(1rem, 3vw, 1.3rem);
+  background: #fafbf9;
+  border: 1px solid var(--line);
+}
+
+.event-csv-heading,
+.event-csv-preview-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.event-csv-heading h3 {
+  margin: 0;
+  color: #1f2530;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+}
+
+.event-csv-heading p,
+.event-csv-columns {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.event-csv-heading p {
+  max-width: 66ch;
+  margin: 0.4rem 0 0;
+}
+
+.event-csv-columns {
+  margin: 1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.event-csv-columns strong {
+  color: #384352;
+}
+
+.event-csv-file-field {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  color: #384352;
+  background: #ffffff;
+  border: 1px dashed #aeb7c1;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.event-csv-file-field input {
+  width: 100%;
+  padding: 0.55rem;
+  color: var(--text);
+  background: #f7f8f6;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+}
+
+.event-csv-file-field small {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.event-csv-errors {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  color: #7a1b28;
+  background: #fff1f2;
+  border: 1px solid #e6b7bd;
+  font-size: 0.86rem;
+}
+
+.event-csv-errors ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.event-csv-errors li + li {
+  margin-top: 0.25rem;
+}
+
+.event-csv-preview {
+  margin-top: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--line);
+}
+
+.event-csv-preview-heading {
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.event-csv-preview-heading > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.event-csv-preview-heading strong {
+  overflow: hidden;
+  color: #252d38;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-csv-preview-heading span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.event-csv-preview-heading .event-csv-ready {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.48rem;
+  color: #245733;
+  background: #dceede;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.event-csv-table-wrap {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.event-csv-table-wrap table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.event-csv-table-wrap th,
+.event-csv-table-wrap td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.event-csv-table-wrap th {
+  position: sticky;
+  top: 0;
+  color: #384352;
+  background: #f4f5f3;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.event-csv-table-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.event-csv-table-wrap td > strong,
+.event-csv-table-wrap td > span {
+  display: block;
+}
+
+.event-csv-table-wrap td > span {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
 .event-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -412,6 +653,205 @@
   margin: 0;
   accent-color: var(--brand);
   box-shadow: none;
+}
+
+.event-form-grid .event-check-field input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.event-submitter-fields {
+  margin: 1.2rem 0 0;
+  padding: 1rem;
+  background: #f7f8f6;
+  border: 1px solid var(--line);
+}
+
+.event-submitter-fields legend {
+  padding: 0 0.35rem;
+  color: #1f2530;
+  font-weight: 800;
+}
+
+.event-submitter-fields > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.event-submitter-fields .event-form-grid {
+  margin-top: 0.85rem;
+}
+
+.event-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.event-review-queue {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.event-review-heading,
+.event-review-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.event-review-heading h2,
+.event-review-card h3,
+.event-review-empty h3 {
+  margin: 0;
+  color: #1f2530;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.event-review-heading h2 {
+  font-size: 1.5rem;
+}
+
+.event-review-heading > span {
+  padding: 0.3rem 0.5rem;
+  color: #674b0b;
+  background: #fff4d5;
+  border: 1px solid #e2c779;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.event-review-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.9rem 0;
+}
+
+.event-review-tabs button {
+  min-height: 40px;
+  padding: 0.55rem 0.75rem;
+  color: #384352;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.event-review-tabs button:hover,
+.event-review-tabs button:focus-visible,
+.event-review-tabs button.active {
+  color: #ffffff;
+  background: #385a46;
+  border-color: #385a46;
+  outline: none;
+}
+
+.event-review-tabs button span {
+  display: inline-grid;
+  min-width: 21px;
+  height: 21px;
+  margin-left: 0.25rem;
+  place-items: center;
+  color: inherit;
+  background: rgba(127, 136, 131, 0.16);
+  font-size: 0.7rem;
+}
+
+.event-review-tabs button.active span,
+.event-review-tabs button:hover span,
+.event-review-tabs button:focus-visible span {
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.event-review-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.event-review-card {
+  min-width: 0;
+  padding: 1rem;
+  background: #fbfbfa;
+  border: 1px solid var(--line);
+}
+
+.event-review-card h3 {
+  margin-top: 0.28rem;
+  font-size: 1.2rem;
+}
+
+.event-review-card > p {
+  margin: 0.48rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.event-review-card .event-schedule {
+  color: #3e4957;
+  font-weight: 750;
+}
+
+.event-review-description {
+  white-space: pre-line;
+}
+
+.event-status-badge {
+  flex: 0 0 auto;
+  padding: 0.22rem 0.42rem;
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.event-status-badge.status-pending {
+  color: #674b0b;
+  background: #f4d991;
+}
+
+.event-status-badge.status-approved {
+  color: #245733;
+  background: #dceede;
+}
+
+.event-status-badge.status-rejected {
+  color: #861f2c;
+  background: #f5dfe2;
+}
+
+.event-review-submitter {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.event-review-submitter a {
+  color: var(--brand);
+  font-weight: 750;
+}
+
+.event-review-empty {
+  padding: 1.15rem;
+  color: var(--muted);
+  background: #f7f8f7;
+  border: 1px dashed #c8cdd3;
+  text-align: center;
+}
+
+.event-review-empty h3 {
+  font-size: 1.1rem;
+}
+
+.event-review-empty p {
+  margin: 0.4rem 0 0;
+  font-size: 0.84rem;
 }
 
 .event-form-actions,
@@ -867,6 +1307,10 @@
     grid-template-columns: 1fr;
   }
 
+  .event-review-list {
+    grid-template-columns: 1fr;
+  }
+
   .selected-day-panel {
     position: static;
     max-height: none;
@@ -894,6 +1338,8 @@
   .calendar-admin-toggle-row,
   .calendar-toolbar,
   .event-editor-heading,
+  .event-csv-heading,
+  .event-csv-preview-heading,
   .admin-signed-in,
   .admin-denied,
   .calendar-load-error {
@@ -904,6 +1350,17 @@
   .calendar-connection-notice {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .calendar-top-actions {
+    display: grid;
+    width: 100%;
+  }
+
+  .event-submission-modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
   .calendar-admin-toggle-row .calendar-button,
@@ -927,6 +1384,21 @@
 
   .admin-login-actions .calendar-button {
     width: 100%;
+  }
+
+  .event-csv-heading .calendar-button {
+    width: 100%;
+  }
+
+  .event-review-heading,
+  .event-review-card-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .event-review-heading > span,
+  .event-status-badge {
+    width: fit-content;
   }
 
   .month-navigation {

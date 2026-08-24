@@ -5,6 +5,7 @@ import {
   isSupabaseConfigured,
   supabase,
 } from '../lib/supabase'
+import { EVENT_CSV_HEADERS, parseEventCsv } from '../lib/eventCsv'
 import './CalendarPage.css'
 
 const EVENT_TIME_ZONE = 'America/New_York'
@@ -19,6 +20,13 @@ const EVENT_CATEGORIES = [
   'Government',
   'Other',
 ]
+const EVENT_REVIEW_STATUSES = [
+  { id: 'pending', label: 'Pending' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'rejected', label: 'Rejected' },
+]
+const MAX_BULK_EVENTS = 100
+const MAX_CSV_FILE_BYTES = 2 * 1024 * 1024
 const EVENT_COLUMNS = [
   'id',
   'title',
@@ -31,6 +39,9 @@ const EVENT_COLUMNS = [
   'website_url',
   'category',
   'is_published',
+  'status',
+  'reviewed_at',
+  'created_at',
 ].join(',')
 
 const dateTimePartsFormatter = new Intl.DateTimeFormat('en-US', {
@@ -137,6 +148,7 @@ function blankEvent(date = localDateKey(new Date())) {
     website_url: '',
     category: 'Community',
     is_published: true,
+    status: 'approved',
   }
 }
 
@@ -157,6 +169,7 @@ function eventToForm(event) {
     website_url: event.website_url ?? '',
     category: event.category ?? 'Community',
     is_published: Boolean(event.is_published),
+    status: event.status ?? 'approved',
   }
 }
 
@@ -172,10 +185,45 @@ function eventPayload(form) {
     all_day: form.all_day,
     location_name: form.location_name.trim() || null,
     address: form.address.trim() || null,
-    website_url: form.website_url.trim() || null,
+    website_url: normalizeWebsiteUrl(form.website_url),
     category: form.category,
-    is_published: form.is_published,
+    is_published: form.status === 'approved' && form.is_published,
+    status: form.status,
   }
+}
+
+function publicSubmissionPayload(form) {
+  const payload = eventPayload(form)
+  if (payload.end_at && new Date(payload.end_at) <= new Date(payload.start_at)) {
+    throw new Error('The event end must be after its start.')
+  }
+
+  return {
+    title: payload.title,
+    description: payload.description,
+    start_at: payload.start_at,
+    end_at: payload.end_at,
+    all_day: payload.all_day,
+    location_name: payload.location_name,
+    address: payload.address,
+    website_url: payload.website_url,
+    category: payload.category,
+  }
+}
+
+function formatCsvSchedule(event) {
+  if (event.all_day) {
+    return event.end_date && event.end_date !== event.start_date
+      ? `${event.start_date} – ${event.end_date} · All day`
+      : `${event.start_date} · All day`
+  }
+
+  const start = `${event.start_date} at ${event.start_time}`
+  if (!event.end_date) return start
+  if (event.end_date === event.start_date) {
+    return event.end_time ? `${start}–${event.end_time}` : start
+  }
+  return `${start} – ${event.end_date}${event.end_time ? ` at ${event.end_time}` : ''}`
 }
 
 function getCalendarDays(month) {
@@ -218,13 +266,494 @@ function safeWebsiteUrl(value) {
   }
 }
 
+function normalizeWebsiteUrl(value) {
+  const trimmedValue = value.trim()
+  if (!trimmedValue) return null
+
+  const candidate = /^https?:\/\//i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`
+  const normalizedUrl = safeWebsiteUrl(candidate)
+
+  if (!normalizedUrl) {
+    throw new Error('Enter a valid event website.')
+  }
+
+  return normalizedUrl
+}
+
+function eventSubmissionContact(event) {
+  const contact = event.event_submission_contacts
+  return Array.isArray(contact) ? contact[0] : contact
+}
+
+function EventInformationFields({ form, updateField, showReviewControls = false }) {
+  return (
+    <div className="event-form-grid">
+      <label className="field-wide">
+        <span>Event title</span>
+        <input
+          type="text"
+          value={form.title}
+          onChange={(event) => updateField('title', event.target.value)}
+          required
+          maxLength="120"
+        />
+      </label>
+
+      <label>
+        <span>Category</span>
+        <select
+          value={form.category}
+          onChange={(event) => updateField('category', event.target.value)}
+        >
+          {EVENT_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
+        </select>
+      </label>
+
+      <label className="event-check-field">
+        <input
+          type="checkbox"
+          checked={form.all_day}
+          onChange={(event) => updateField('all_day', event.target.checked)}
+        />
+        <span>All-day event</span>
+      </label>
+
+      <label>
+        <span>Start date</span>
+        <input
+          type="date"
+          value={form.start_date}
+          onChange={(event) => updateField('start_date', event.target.value)}
+          required
+        />
+      </label>
+
+      {!form.all_day && (
+        <label>
+          <span>Start time</span>
+          <input
+            type="time"
+            value={form.start_time}
+            onChange={(event) => updateField('start_time', event.target.value)}
+            required
+          />
+        </label>
+      )}
+
+      <label>
+        <span>End date <small>(optional)</small></span>
+        <input
+          type="date"
+          value={form.end_date}
+          min={form.start_date}
+          onChange={(event) => updateField('end_date', event.target.value)}
+        />
+      </label>
+
+      {!form.all_day && (
+        <label>
+          <span>End time <small>(optional)</small></span>
+          <input
+            type="time"
+            value={form.end_time}
+            onChange={(event) => updateField('end_time', event.target.value)}
+          />
+        </label>
+      )}
+
+      <label>
+        <span>Venue</span>
+        <input
+          type="text"
+          value={form.location_name}
+          onChange={(event) => updateField('location_name', event.target.value)}
+          maxLength="160"
+          placeholder="Lee Theatre"
+        />
+      </label>
+
+      <label>
+        <span>Street address</span>
+        <input
+          type="text"
+          value={form.address}
+          onChange={(event) => updateField('address', event.target.value)}
+          maxLength="240"
+          placeholder="41676 W Morgan Avenue, Pennington Gap, VA"
+        />
+      </label>
+
+      <label className="field-wide">
+        <span>Event website</span>
+        <input
+          type="text"
+          inputMode="url"
+          value={form.website_url}
+          onChange={(event) => updateField('website_url', event.target.value)}
+          maxLength="500"
+          placeholder="https://example.com/event"
+        />
+      </label>
+
+      <label className="field-wide">
+        <span>Description</span>
+        <textarea
+          value={form.description}
+          onChange={(event) => updateField('description', event.target.value)}
+          rows="5"
+          maxLength="4000"
+        />
+      </label>
+
+      {showReviewControls && (
+        <>
+          <label>
+            <span>Review status</span>
+            <select
+              value={form.status}
+              onChange={(event) => updateField('status', event.target.value)}
+            >
+              {EVENT_REVIEW_STATUSES.map((status) => (
+                <option value={status.id} key={status.id}>{status.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="event-check-field">
+            <input
+              type="checkbox"
+              checked={form.is_published}
+              disabled={form.status !== 'approved'}
+              onChange={(event) => updateField('is_published', event.target.checked)}
+            />
+            <span>
+              {form.status === 'approved'
+                ? 'Published and visible to visitors'
+                : 'Approve this event before publishing'}
+            </span>
+          </label>
+        </>
+      )}
+    </div>
+  )
+}
+
+function EventSubmissionForm({ initialDate, onCancel, onSubmitted }) {
+  const [submissionMode, setSubmissionMode] = useState('single')
+  const [form, setForm] = useState(() => blankEvent(initialDate))
+  const [csvEvents, setCsvEvents] = useState([])
+  const [csvErrors, setCsvErrors] = useState([])
+  const [csvFileName, setCsvFileName] = useState('')
+  const [contact, setContact] = useState({
+    submitter_name: '',
+    submitter_email: '',
+    company: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const updateContactField = (field, value) => {
+    setContact((current) => ({ ...current, [field]: value }))
+  }
+
+  const changeMode = (mode) => {
+    setSubmissionMode(mode)
+    setError('')
+  }
+
+  const handleCsvFile = async (changeEvent) => {
+    const [file] = changeEvent.target.files
+    setCsvEvents([])
+    setCsvErrors([])
+    setCsvFileName(file?.name ?? '')
+    setError('')
+
+    if (!file) return
+    if (file.size > MAX_CSV_FILE_BYTES) {
+      setCsvErrors(['The CSV file must be 2 MB or smaller.'])
+      return
+    }
+
+    try {
+      const parsed = parseEventCsv(await file.text(), {
+        categories: EVENT_CATEGORIES,
+        maxEvents: MAX_BULK_EVENTS,
+      })
+      const validatedEvents = []
+      const validationErrors = [...parsed.errors]
+
+      parsed.events.forEach((csvEvent) => {
+        try {
+          publicSubmissionPayload(csvEvent)
+          validatedEvents.push(csvEvent)
+        } catch (validationError) {
+          validationErrors.push(`Row ${csvEvent.csv_row}: ${validationError.message}`)
+        }
+      })
+
+      setCsvEvents(validatedEvents)
+      setCsvErrors(validationErrors)
+    } catch (fileError) {
+      setCsvErrors([fileError.message || 'The CSV file could not be read.'])
+    }
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+
+    try {
+      const forms = submissionMode === 'csv' ? csvEvents : [form]
+      if (submissionMode === 'csv' && csvErrors.length > 0) {
+        throw new Error('Fix the CSV errors and upload the file again before submitting.')
+      }
+      if (forms.length === 0) {
+        throw new Error('Choose a CSV file containing at least one event.')
+      }
+
+      setSubmitting(true)
+
+      // A filled honeypot is treated as a successful submission without writing spam.
+      if (contact.company) {
+        onSubmitted(forms.length)
+        return
+      }
+
+      const payloads = forms.map((eventForm, index) => {
+        try {
+          return publicSubmissionPayload(eventForm)
+        } catch (payloadError) {
+          const eventLabel = submissionMode === 'csv'
+            ? `CSV row ${eventForm.csv_row}`
+            : `Event ${index + 1}`
+          throw new Error(`${eventLabel}: ${payloadError.message}`, { cause: payloadError })
+        }
+      })
+
+      const contactPayload = {
+        p_submitter_name: contact.submitter_name.trim(),
+        p_submitter_email: contact.submitter_email.trim(),
+      }
+
+      const request = payloads.length === 1
+        ? supabase.rpc('submit_calendar_event', {
+            p_title: payloads[0].title,
+            p_description: payloads[0].description,
+            p_start_at: payloads[0].start_at,
+            p_end_at: payloads[0].end_at,
+            p_all_day: payloads[0].all_day,
+            p_location_name: payloads[0].location_name,
+            p_address: payloads[0].address,
+            p_website_url: payloads[0].website_url,
+            p_category: payloads[0].category,
+            ...contactPayload,
+          })
+        : supabase.rpc('submit_calendar_events', {
+            p_events: payloads,
+            ...contactPayload,
+          })
+
+      const { error: submitError } = await request
+
+      if (submitError) throw submitError
+      onSubmitted(forms.length)
+    } catch (submitError) {
+      setError(submitError.message || 'The events could not be submitted.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <section className="event-editor event-submission" aria-labelledby="event-submission-title">
+      <div className="event-editor-heading">
+        <div>
+          <p className="calendar-eyebrow">Community calendar</p>
+          <h2 id="event-submission-title">Submit events</h2>
+          <p>Enter one event or upload a CSV spreadsheet with up to {MAX_BULK_EVENTS} events.</p>
+        </div>
+        <button type="button" className="calendar-button button-quiet" onClick={onCancel}>
+          Close
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="event-submission-modes" role="group" aria-label="Event submission method">
+          <button
+            type="button"
+            className={submissionMode === 'single' ? 'active' : undefined}
+            aria-pressed={submissionMode === 'single'}
+            onClick={() => changeMode('single')}
+          >
+            Enter one event
+          </button>
+          <button
+            type="button"
+            className={submissionMode === 'csv' ? 'active' : undefined}
+            aria-pressed={submissionMode === 'csv'}
+            onClick={() => changeMode('csv')}
+          >
+            Upload CSV
+          </button>
+        </div>
+
+        {submissionMode === 'single' ? (
+          <EventInformationFields form={form} updateField={updateField} />
+        ) : (
+          <section className="event-csv-panel" aria-labelledby="event-csv-title">
+            <div className="event-csv-heading">
+              <div>
+                <h3 id="event-csv-title">Upload your event spreadsheet</h3>
+                <p>
+                  The template includes an example row—replace or delete it before submitting.
+                  Use the headers exactly. Dates may use YYYY-MM-DD or M/D/YYYY; times may
+                  use 18:30 or 6:30 PM. Title and start date are required, along with a start
+                  time unless all_day is Yes.
+                </p>
+              </div>
+              <a
+                className="calendar-button button-quiet"
+                href={`${import.meta.env.BASE_URL}event-upload-template.csv`}
+                download
+              >
+                Download CSV template
+              </a>
+            </div>
+
+            <p className="event-csv-columns">
+              <strong>Columns:</strong> {EVENT_CSV_HEADERS.join(', ')}
+            </p>
+
+            <label className="event-csv-file-field">
+              <span>Choose CSV file</span>
+              <input type="file" accept=".csv,text/csv" onChange={handleCsvFile} />
+              <small>Maximum {MAX_BULK_EVENTS} events and 2 MB.</small>
+            </label>
+
+            {csvErrors.length > 0 && (
+              <div className="event-csv-errors" role="alert">
+                <strong>{csvFileName || 'CSV'} could not be submitted:</strong>
+                <ul>
+                  {csvErrors.map((csvError) => <li key={csvError}>{csvError}</li>)}
+                </ul>
+              </div>
+            )}
+
+            {csvEvents.length > 0 && (
+              <div className="event-csv-preview">
+                <div className="event-csv-preview-heading">
+                  <div>
+                    <strong>{csvFileName}</strong>
+                    <span>{csvEvents.length} event{csvEvents.length === 1 ? '' : 's'} ready</span>
+                  </div>
+                  {csvErrors.length === 0 && <span className="event-csv-ready">Ready to submit</span>}
+                </div>
+                <div className="event-csv-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Row</th>
+                        <th scope="col">Event</th>
+                        <th scope="col">Schedule</th>
+                        <th scope="col">Category</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvEvents.map((csvEvent) => (
+                        <tr key={csvEvent.csv_row}>
+                          <td>{csvEvent.csv_row}</td>
+                          <td>
+                            <strong>{csvEvent.title}</strong>
+                            {csvEvent.location_name && <span>{csvEvent.location_name}</span>}
+                          </td>
+                          <td>{formatCsvSchedule(csvEvent)}</td>
+                          <td>{csvEvent.category}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        <fieldset className="event-submitter-fields">
+          <legend>Your contact information</legend>
+          <p>This information is only visible to calendar administrators.</p>
+          <div className="event-form-grid">
+            <label>
+              <span>Your name</span>
+              <input
+                type="text"
+                value={contact.submitter_name}
+                onChange={(event) => updateContactField('submitter_name', event.target.value)}
+                maxLength="140"
+                required
+              />
+            </label>
+            <label>
+              <span>Your email</span>
+              <input
+                type="email"
+                value={contact.submitter_email}
+                onChange={(event) => updateContactField('submitter_email', event.target.value)}
+                maxLength="254"
+                required
+              />
+            </label>
+          </div>
+        </fieldset>
+
+        <label className="event-honeypot" aria-hidden="true">
+          <span>Company</span>
+          <input
+            type="text"
+            value={contact.company}
+            onChange={(event) => updateContactField('company', event.target.value)}
+            tabIndex="-1"
+            autoComplete="off"
+          />
+        </label>
+
+        {error && <p className="calendar-message message-error" role="alert">{error}</p>}
+
+        <div className="event-form-actions">
+          <button
+            className="calendar-button button-primary"
+            type="submit"
+            disabled={submitting || (submissionMode === 'csv' && (csvEvents.length === 0 || csvErrors.length > 0))}
+          >
+            {submitting
+              ? 'Sending…'
+              : submissionMode === 'csv'
+                ? `Submit ${csvEvents.length} event${csvEvents.length === 1 ? '' : 's'} for approval`
+                : 'Submit event for approval'}
+          </button>
+          <button className="calendar-button button-quiet" type="button" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  )
+}
+
 function EventForm({ event, initialDate, onCancel, onSaved }) {
   const [form, setForm] = useState(() => (event ? eventToForm(event) : blankEvent(initialDate)))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const updateField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }))
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === 'status' && value !== 'approved' ? { is_published: false } : {}),
+    }))
   }
 
   const handleSubmit = async (submitEvent) => {
@@ -266,131 +795,11 @@ function EventForm({ event, initialDate, onCancel, onSaved }) {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="event-form-grid">
-          <label className="field-wide">
-            <span>Event title</span>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(changeEvent) => updateField('title', changeEvent.target.value)}
-              required
-              maxLength="120"
-            />
-          </label>
-
-          <label>
-            <span>Category</span>
-            <select
-              value={form.category}
-              onChange={(changeEvent) => updateField('category', changeEvent.target.value)}
-            >
-              {EVENT_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
-            </select>
-          </label>
-
-          <label className="event-check-field">
-            <input
-              type="checkbox"
-              checked={form.all_day}
-              onChange={(changeEvent) => updateField('all_day', changeEvent.target.checked)}
-            />
-            <span>All-day event</span>
-          </label>
-
-          <label>
-            <span>Start date</span>
-            <input
-              type="date"
-              value={form.start_date}
-              onChange={(changeEvent) => updateField('start_date', changeEvent.target.value)}
-              required
-            />
-          </label>
-
-          {!form.all_day && (
-            <label>
-              <span>Start time</span>
-              <input
-                type="time"
-                value={form.start_time}
-                onChange={(changeEvent) => updateField('start_time', changeEvent.target.value)}
-                required
-              />
-            </label>
-          )}
-
-          <label>
-            <span>End date <small>(optional)</small></span>
-            <input
-              type="date"
-              value={form.end_date}
-              min={form.start_date}
-              onChange={(changeEvent) => updateField('end_date', changeEvent.target.value)}
-            />
-          </label>
-
-          {!form.all_day && (
-            <label>
-              <span>End time <small>(optional)</small></span>
-              <input
-                type="time"
-                value={form.end_time}
-                onChange={(changeEvent) => updateField('end_time', changeEvent.target.value)}
-              />
-            </label>
-          )}
-
-          <label>
-            <span>Venue</span>
-            <input
-              type="text"
-              value={form.location_name}
-              onChange={(changeEvent) => updateField('location_name', changeEvent.target.value)}
-              maxLength="160"
-              placeholder="Lee Theatre"
-            />
-          </label>
-
-          <label>
-            <span>Street address</span>
-            <input
-              type="text"
-              value={form.address}
-              onChange={(changeEvent) => updateField('address', changeEvent.target.value)}
-              maxLength="240"
-              placeholder="41676 W Morgan Avenue, Pennington Gap, VA"
-            />
-          </label>
-
-          <label className="field-wide">
-            <span>Event website</span>
-            <input
-              type="url"
-              value={form.website_url}
-              onChange={(changeEvent) => updateField('website_url', changeEvent.target.value)}
-              placeholder="https://example.com/event"
-            />
-          </label>
-
-          <label className="field-wide">
-            <span>Description</span>
-            <textarea
-              value={form.description}
-              onChange={(changeEvent) => updateField('description', changeEvent.target.value)}
-              rows="5"
-              maxLength="4000"
-            />
-          </label>
-
-          <label className="event-check-field field-wide">
-            <input
-              type="checkbox"
-              checked={form.is_published}
-              onChange={(changeEvent) => updateField('is_published', changeEvent.target.checked)}
-            />
-            <span>Published and visible to visitors</span>
-          </label>
-        </div>
+        <EventInformationFields
+          form={form}
+          updateField={updateField}
+          showReviewControls
+        />
 
         {error && <p className="calendar-message message-error" role="alert">{error}</p>}
 
@@ -403,6 +812,143 @@ function EventForm({ event, initialDate, onCancel, onSaved }) {
           </button>
         </div>
       </form>
+    </section>
+  )
+}
+
+function EventReviewQueue({ events, loading, error, onEdit, onStatusChange, onDelete }) {
+  const [activeStatus, setActiveStatus] = useState('pending')
+  const [updatingId, setUpdatingId] = useState(null)
+
+  const statusCounts = useMemo(
+    () => Object.fromEntries(
+      EVENT_REVIEW_STATUSES.map((status) => [
+        status.id,
+        events.filter((event) => event.status === status.id).length,
+      ]),
+    ),
+    [events],
+  )
+
+  const visibleEvents = useMemo(
+    () => events.filter((event) => event.status === activeStatus),
+    [activeStatus, events],
+  )
+
+  const changeStatus = async (event, status) => {
+    setUpdatingId(event.id)
+    await onStatusChange(event, status)
+    setUpdatingId(null)
+  }
+
+  const deleteEvent = async (event) => {
+    setUpdatingId(event.id)
+    await onDelete(event)
+    setUpdatingId(null)
+  }
+
+  return (
+    <section className="event-review-queue" aria-labelledby="event-review-title">
+      <div className="event-review-heading">
+        <div>
+          <p className="calendar-eyebrow">Community submissions</p>
+          <h2 id="event-review-title">Review events</h2>
+        </div>
+        <span>{statusCounts.pending ?? 0} pending</span>
+      </div>
+
+      <div className="event-review-tabs" role="group" aria-label="Event submission status">
+        {EVENT_REVIEW_STATUSES.map((status) => (
+          <button
+            type="button"
+            className={activeStatus === status.id ? 'active' : undefined}
+            aria-pressed={activeStatus === status.id}
+            onClick={() => setActiveStatus(status.id)}
+            key={status.id}
+          >
+            {status.label} <span>{statusCounts[status.id] ?? 0}</span>
+          </button>
+        ))}
+      </div>
+
+      {loading && <p className="admin-access-status" role="status">Loading event submissions…</p>}
+      {error && <p className="calendar-message message-error" role="alert">{error}</p>}
+
+      {!loading && !error && visibleEvents.length === 0 && (
+        <div className="event-review-empty">
+          <h3>No {activeStatus} events</h3>
+          <p>Events with this status will appear here.</p>
+        </div>
+      )}
+
+      {!loading && !error && visibleEvents.length > 0 && (
+        <div className="event-review-list">
+          {visibleEvents.map((event) => {
+            const contact = eventSubmissionContact(event)
+            const isUpdating = updatingId === event.id
+
+            return (
+              <article className="event-review-card" key={event.id}>
+                <div className="event-review-card-heading">
+                  <div>
+                    <p className="event-category">{event.category}</p>
+                    <h3>{event.title}</h3>
+                  </div>
+                  <span className={`event-status-badge status-${event.status}`}>{event.status}</span>
+                </div>
+                <p className="event-schedule">{formatEventSchedule(event)}</p>
+                {event.location_name && <p><strong>{event.location_name}</strong></p>}
+                {event.address && <p>{event.address}</p>}
+                {event.description && <p className="event-review-description">{event.description}</p>}
+                {contact && (
+                  <p className="event-review-submitter">
+                    Submitted by {contact.contact_name} ·{' '}
+                    <a href={`mailto:${contact.contact_email}`}>{contact.contact_email}</a>
+                  </p>
+                )}
+                <div className="event-card-actions">
+                  <button
+                    type="button"
+                    className="calendar-button button-quiet"
+                    onClick={() => onEdit(event)}
+                    disabled={isUpdating}
+                  >
+                    Edit information
+                  </button>
+                  {event.status !== 'approved' && (
+                    <button
+                      type="button"
+                      className="calendar-button button-approve"
+                      onClick={() => changeStatus(event, 'approved')}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Saving…' : 'Approve & publish'}
+                    </button>
+                  )}
+                  {event.status !== 'rejected' && (
+                    <button
+                      type="button"
+                      className="calendar-button button-reject"
+                      onClick={() => changeStatus(event, 'rejected')}
+                      disabled={isUpdating}
+                    >
+                      Reject
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="calendar-button button-danger"
+                    onClick={() => deleteEvent(event)}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? 'Working…' : 'Delete event'}
+                  </button>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }
@@ -689,6 +1235,7 @@ function CalendarPage() {
   const [upcomingLoading, setUpcomingLoading] = useState(isSupabaseConfigured)
   const [upcomingError, setUpcomingError] = useState('')
   const [upcomingExpanded, setUpcomingExpanded] = useState(false)
+  const [submissionOpen, setSubmissionOpen] = useState(false)
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(isSupabaseConfigured)
   const [adminUserId, setAdminUserId] = useState(null)
@@ -711,6 +1258,9 @@ function CalendarPage() {
   ))
   const [editingEvent, setEditingEvent] = useState(null)
   const [creatingEvent, setCreatingEvent] = useState(false)
+  const [reviewEvents, setReviewEvents] = useState([])
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [reviewError, setReviewError] = useState('')
   const [notice, setNotice] = useState('')
   const isAdmin = Boolean(session?.user && adminUserId === session.user.id)
   const accessLoading = Boolean(session?.user && accessCheckedFor !== session.user.id)
@@ -741,6 +1291,7 @@ function CalendarPage() {
     let query = supabase
       .from('events')
       .select(EVENT_COLUMNS)
+      .eq('status', 'approved')
       .lt('start_at', visibleRange.end)
       .or(`end_at.gte.${visibleRange.start},and(end_at.is.null,start_at.gte.${visibleRange.start})`)
       .order('start_at', { ascending: true })
@@ -765,6 +1316,7 @@ function CalendarPage() {
     let query = supabase
       .from('events')
       .select(EVENT_COLUMNS)
+      .eq('status', 'approved')
       .or(`start_at.gte.${upcomingStart},end_at.gte.${upcomingStart}`)
       .order('start_at', { ascending: true })
 
@@ -779,6 +1331,25 @@ function CalendarPage() {
     }
     setUpcomingLoading(false)
   }, [isAdmin, upcomingStart])
+
+  const loadReviewEvents = useCallback(async () => {
+    if (!supabase || !isAdmin) return
+    setReviewLoading(true)
+    setReviewError('')
+
+    const { data, error } = await supabase
+      .from('events')
+      .select(`${EVENT_COLUMNS},event_submission_contacts(contact_name,contact_email,created_at)`)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      setReviewEvents([])
+      setReviewError(error.message)
+    } else {
+      setReviewEvents(data ?? [])
+    }
+    setReviewLoading(false)
+  }, [isAdmin])
 
   useEffect(() => {
     if (!supabase) return undefined
@@ -907,6 +1478,13 @@ function CalendarPage() {
     return () => window.clearTimeout(loadTimer)
   }, [loadUpcomingEvents])
 
+  useEffect(() => {
+    if (!isAdmin || !adminOpen) return undefined
+
+    const loadTimer = window.setTimeout(loadReviewEvents, 0)
+    return () => window.clearTimeout(loadTimer)
+  }, [adminOpen, isAdmin, loadReviewEvents])
+
   const eventsByDate = useMemo(() => {
     const grouped = new Map()
     const firstVisibleKey = localDateKey(calendarDays[0])
@@ -956,7 +1534,7 @@ function CalendarPage() {
     setEditingEvent(null)
     setCreatingEvent(false)
     setNotice(message)
-    await Promise.all([loadEvents(), loadUpcomingEvents()])
+    await Promise.all([loadEvents(), loadUpcomingEvents(), loadReviewEvents()])
   }
 
   const handleDelete = async (event) => {
@@ -968,8 +1546,40 @@ function CalendarPage() {
       return
     }
 
+    if (editingEvent?.id === event.id) setEditingEvent(null)
     setNotice('Event deleted.')
-    await Promise.all([loadEvents(), loadUpcomingEvents()])
+    await Promise.all([loadEvents(), loadUpcomingEvents(), loadReviewEvents()])
+  }
+
+  const handleReviewStatus = async (event, status) => {
+    const { error } = await supabase
+      .from('events')
+      .update({
+        status,
+        is_published: status === 'approved',
+      })
+      .eq('id', event.id)
+
+    if (error) {
+      setNotice(`Could not update “${event.title}”: ${error.message}`)
+      return
+    }
+
+    setNotice(
+      status === 'approved'
+        ? `“${event.title}” was approved and published.`
+        : `“${event.title}” was rejected.`,
+    )
+    await Promise.all([loadEvents(), loadUpcomingEvents(), loadReviewEvents()])
+  }
+
+  const handleSubmitted = (eventCount) => {
+    setSubmissionOpen(false)
+    setNotice(
+      eventCount === 1
+        ? 'Your event was submitted for review. It will appear after an administrator approves it.'
+        : `${eventCount} events were submitted for review. They will appear after an administrator approves them.`,
+    )
   }
 
   const handleSignOut = async () => {
@@ -978,6 +1588,8 @@ function CalendarPage() {
     setCreatingEvent(false)
     setAdminUserId(null)
     setAccessCheckedFor(null)
+    setReviewEvents([])
+    setReviewError('')
   }
 
   const handlePasswordSet = () => {
@@ -1007,21 +1619,38 @@ function CalendarPage() {
     <div className="calendar-app">
       <div className="calendar-admin-toggle-row">
         <p>All event times are shown in Eastern Time.</p>
-        <button
-          type="button"
-          className={`calendar-button ${isAdmin ? 'button-quiet' : 'button-primary'}`}
-          aria-expanded={adminOpen || passwordModalOpen}
-          aria-controls={passwordSetupReason ? 'calendar-password-modal' : 'calendar-admin-panel'}
-          onClick={handleAdminToggle}
-        >
-          {isAdmin ? 'Manage calendar' : 'Sign in to manage events'}
-        </button>
+        <div className="calendar-top-actions">
+          <button
+            type="button"
+            className="calendar-button button-primary"
+            aria-expanded={submissionOpen}
+            aria-controls="event-submission-form"
+            disabled={!isSupabaseConfigured}
+            onClick={() => {
+              setSubmissionOpen((open) => !open)
+              setEditingEvent(null)
+              setCreatingEvent(false)
+              setNotice('')
+            }}
+          >
+            {submissionOpen ? 'Close event form' : 'Submit events'}
+          </button>
+          <button
+            type="button"
+            className="calendar-button button-quiet"
+            aria-expanded={adminOpen || passwordModalOpen}
+            aria-controls={passwordSetupReason ? 'calendar-password-modal' : 'calendar-admin-panel'}
+            onClick={handleAdminToggle}
+          >
+            {isAdmin ? 'Manage calendar' : 'Admin sign in'}
+          </button>
+        </div>
       </div>
 
       {!isSupabaseConfigured && (
         <div className="calendar-connection-notice" role="status">
           <strong>Calendar preview</strong>
-          <span>Connect Supabase to load events and enable sign in.</span>
+          <span>Connect Supabase to load events, accept submissions, and enable sign in.</span>
         </div>
       )}
 
@@ -1083,22 +1712,55 @@ function CalendarPage() {
             onSignOut={handleSignOut}
           />
           {isAdmin && !accessLoading && !passwordSetupReason && (
-            <button
-              type="button"
-              className="calendar-button button-primary admin-add-button"
-              onClick={() => {
-                setEditingEvent(null)
-                setCreatingEvent(true)
-                setNotice('')
-              }}
-            >
-              Add event
-            </button>
+            <>
+              <button
+                type="button"
+                className="calendar-button button-primary admin-add-button"
+                onClick={() => {
+                  setSubmissionOpen(false)
+                  setEditingEvent(null)
+                  setCreatingEvent(true)
+                  setNotice('')
+                }}
+              >
+                Add event
+              </button>
+              <EventReviewQueue
+                events={reviewEvents}
+                loading={reviewLoading}
+                error={reviewError}
+                onEdit={(event) => {
+                  setSubmissionOpen(false)
+                  setCreatingEvent(false)
+                  setEditingEvent(event)
+                  setNotice('')
+                }}
+                onStatusChange={handleReviewStatus}
+                onDelete={handleDelete}
+              />
+            </>
           )}
         </section>
       )}
 
-      {notice && <p className="calendar-message message-success" role="status">{notice}</p>}
+      {notice && (
+        <p
+          className={`calendar-message ${notice.startsWith('Could not') ? 'message-error' : 'message-success'}`}
+          role="status"
+        >
+          {notice}
+        </p>
+      )}
+
+      {submissionOpen && isSupabaseConfigured && (
+        <div id="event-submission-form">
+          <EventSubmissionForm
+            initialDate={selectedDate}
+            onCancel={() => setSubmissionOpen(false)}
+            onSubmitted={handleSubmitted}
+          />
+        </div>
+      )}
 
       {isAdmin && (creatingEvent || editingEvent) && (
         <EventForm
@@ -1183,6 +1845,7 @@ function CalendarPage() {
                 type="button"
                 className="calendar-button button-primary"
                 onClick={() => {
+                  setSubmissionOpen(false)
                   setAdminOpen(true)
                   setEditingEvent(null)
                   setCreatingEvent(true)
@@ -1204,6 +1867,7 @@ function CalendarPage() {
                   isAdmin={isAdmin}
                   key={event.id}
                   onEdit={(selectedEvent) => {
+                    setSubmissionOpen(false)
                     setAdminOpen(true)
                     setCreatingEvent(false)
                     setEditingEvent(selectedEvent)

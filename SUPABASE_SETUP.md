@@ -1,6 +1,6 @@
-# Supabase calendar setup
+# Supabase calendar and event-submission setup
 
-The calendar is already wired to Supabase. Visitors can read published events. Only users listed in `calendar_admins` can create, edit, publish, unpublish, or delete events.
+The calendar is already wired to Supabase. Visitors can read published events and submit new events for review. Only users listed in `calendar_admins` can approve, reject, edit, publish, unpublish, or delete events.
 
 ## 1. Create the project and database
 
@@ -8,7 +8,9 @@ The calendar is already wired to Supabase. Visitors can read published events. O
 2. In the project dashboard, open **SQL Editor** and choose **New query**.
 3. Copy all of [`supabase/calendar.sql`](supabase/calendar.sql) into the editor and click **Run**.
 
-The SQL creates the `events` and `calendar_admins` tables, indexes, an automatic `updated_at` trigger, grants, and Row Level Security policies. Do not disable RLS.
+The SQL creates the `events`, `event_submission_contacts`, and `calendar_admins` tables; the public single- and bulk-event submission functions; indexes; review and timestamp triggers; grants; and Row Level Security policies. Public submissions are always saved as unpublished pending events, and submitter contact information is visible only to calendar administrators. Do not disable RLS.
+
+The file is safe to rerun when upgrading an existing calendar. Existing events are assigned `approved` status, so currently published events stay visible. Editing the local SQL file does not update Supabase by itself; run the complete current file in the SQL Editor after pulling this version.
 
 ## 2. Create each calendar user
 
@@ -67,7 +69,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 npm run dev
 ```
 
-Open `/calendar`, choose **Sign in to manage events**, and use the account created above. Invitation links open the password-creation form automatically. Supabase stores and refreshes the session in browser local storage, so the user remains signed in on that device until they sign out or the session is revoked.
+Open `/calendar`, choose **Admin sign in**, and use the account created above. Invitation links open the password-creation form automatically. Supabase stores and refreshes the session in browser local storage, so the user remains signed in on that device until they sign out or the session is revoked.
 
 ## 4. Add the production values to GitHub Pages
 
@@ -88,6 +90,19 @@ Vite embeds both values in the browser bundle. That is expected for a Supabase p
 - Create only approved calendar users through **Authentication > Users**.
 - If access must be revoked immediately, remove the `calendar_admins` row and use **Authentication > Users** to sign the user out or delete/ban the account.
 
-## Event fields
+## 6. Review public event submissions
 
-The editor supports title, category, start/end date and time, all-day events, venue, address, website, description, and draft/published status. Times are saved and displayed in `America/New_York` (Eastern Time). Draft events are visible only to calendar admins.
+1. Open `/calendar` and choose **Admin sign in**.
+2. Open **Manage calendar** after signing in.
+3. Use the Pending, Approved, and Rejected tabs under **Review events**.
+4. Choose **Approve & publish** to place a submission on the public calendar, or **Reject** to keep it private. Administrators can edit the details before or after making a decision.
+
+Visitors use **Submit events** without creating an account. They can enter one event normally or choose **Upload CSV** to import up to 100 events from a spreadsheet with one shared name and email address. A downloadable template provides the required columns, and the site validates and previews every row before submission. CSV dates may use `YYYY-MM-DD` or `M/D/YYYY`; times may use 24-hour time or values such as `6:30 PM`. The batch is saved atomically, so none of its events are created if any one event fails validation. Submitted events remain invisible to public visitors until an administrator approves them. Deleting an event also deletes its private submitter contact record.
+
+## 7. Event fields
+
+The CSV template uses these columns: `title`, `category`, `start_date`, `start_time`, `end_date`, `end_time`, `all_day`, `venue`, `address`, `website`, and `description`. The public form and administrator editor support the same event details. The administrator editor also controls review and draft/published status. Times are saved and displayed in `America/New_York` (Eastern Time). Draft events are visible only to calendar admins.
+
+## Production spam protection
+
+The event form includes a honeypot and uses narrow database functions that prevent visitors from approving or publishing their own submissions. CSV submissions are capped at 100 events and 2 MB. Before promoting the form broadly, add a CAPTCHA-backed Supabase Edge Function or equivalent server-side rate limiting to reduce automated submission spam.

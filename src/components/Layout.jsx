@@ -3,6 +3,7 @@ import logo from '../assets/ilovelee.webp'
 
 const navLinks = [
   { to: '/', label: 'Home' },
+  { to: '/visitor-info', label: 'Visitor Info' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/artisans', label: 'Artisans' },
   { to: '/heritage', label: 'Heritage' },
@@ -54,7 +55,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="top-nav">
         <a href={toHref('/')} className="brand-mark" onClick={(event) => handleInternalClick(event, '/')}>
-          <img src={logo} alt="" width="44" height="44" />
+          <img src={logo} alt="I Love Lee Virginia tourism logo" width="44" height="44" />
           <span>I Love Lee</span>
         </a>
         <button
@@ -104,6 +105,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
             </div>
             <nav className="footer-column footer-nav" aria-label="Footer">
               <p className="footer-heading">Explore</p>
+              <a href={toHref('/visitor-info')} onClick={(event) => handleInternalClick(event, '/visitor-info')}>Visitor Info</a>
               <a href={toHref('/map')} onClick={(event) => handleInternalClick(event, '/map')}>Map</a>
               <a href={toHref('/lodging')} onClick={(event) => handleInternalClick(event, '/lodging')}>Lodging</a>
               <a href={toHref('/outdoors')} onClick={(event) => handleInternalClick(event, '/outdoors')}>Outdoors</a>

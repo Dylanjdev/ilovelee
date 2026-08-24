@@ -386,7 +386,7 @@ body {
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 980px) {
   .top-nav {
     align-items: center;
   }

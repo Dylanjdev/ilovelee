@@ -1,24 +1,18 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Layout from './components/Layout'
 import Home from './components/Home'
+import { pageMetadata } from './pageMetadata'
 import './components/SectionPage.css'
 
 const PageRoutes = lazy(() => import('./PageRoutes.jsx'))
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
-const pageTitles = {
-  '/': 'I Love Lee | Lee County Virginia Tourism',
-  '/calendar': 'Calendar | I Love Lee',
-  '/artisans': 'Artisans | I Love Lee',
-  '/heritage': 'Heritage | I Love Lee',
-  '/map': 'Map | I Love Lee',
-  '/dine-shop': 'Dine & Shop | I Love Lee',
-  '/lodging': 'Lodging | I Love Lee',
-  '/outdoors': 'Outdoors | I Love Lee',
-  '/towns': 'Towns | I Love Lee',
-  '/weddings': 'Weddings | I Love Lee',
-}
 const routeFallbacks = {
+  '/visitor-info': {
+    label: 'Plan Your Visit',
+    title: 'Lee County, VA Visitor Information',
+    description: 'Maps, directions, local highlights, and practical answers for planning a visit to Lee County, Virginia.',
+  },
   '/calendar': {
     label: 'Lee County Events',
     title: 'Calendar',
@@ -134,10 +128,19 @@ function App() {
   useEffect(() => {
     const canonicalPath = pathname === '/' ? '/' : `${pathname}/`
     const canonicalUrl = new URL(canonicalPath, 'https://discoverleeva.com').href
+    const metadata = pageMetadata[pathname] ?? {
+      title: 'Page Not Found | I Love Lee',
+      description: 'Return home to keep exploring Lee County, Virginia.',
+    }
 
-    document.title = pageTitles[pathname] ?? 'Page Not Found | I Love Lee'
+    document.title = metadata.title
+    document.querySelector('meta[name="description"]')?.setAttribute('content', metadata.description)
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalUrl)
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', metadata.title)
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.title)
+    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.description)
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
     if (hasNavigated.current) {

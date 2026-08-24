@@ -66,7 +66,7 @@ function SectionPage({
                     <img
                       className="feature-media"
                       src={feature.image}
-                      alt={feature.imageAlt}
+                      alt={feature.imageAlt ?? `${feature.title} in Lee County, Virginia`}
                       width={feature.imageWidth}
                       height={feature.imageHeight}
                       loading={featureIndex === 0 ? 'eager' : 'lazy'}
@@ -114,7 +114,7 @@ function SectionPage({
                 {section.image && (
                   <img
                     src={section.image}
-                    alt={section.imageAlt ?? ''}
+                    alt={section.imageAlt ?? `${section.title} in Lee County, Virginia`}
                     loading={sectionIndex === 0 ? 'eager' : 'lazy'}
                     fetchPriority={sectionIndex === 0 ? 'high' : 'low'}
                     decoding="async"
@@ -133,6 +133,15 @@ function SectionPage({
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+                  {section.links && (
+                    <div className="feature-actions">
+                      {section.links.map((link) => (
+                        <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                          {link.label}
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>

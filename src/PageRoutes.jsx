@@ -181,22 +181,143 @@ const heritageSections = [
   },
 ]
 
+const visitorInfoSections = [
+  {
+    title: 'Where is Lee County, Virginia?',
+    paragraphs: [
+      'Lee County is Virginia’s westernmost county, in the far southwest corner of the Commonwealth beside Kentucky and Tennessee. Jonesville, VA is the county seat, and Pennington Gap is the county’s largest town.',
+      'The county is part of the Cumberland Gap region, where Appalachian mountain scenery, small communities, outdoor recreation, and early American history meet.',
+    ],
+  },
+  {
+    title: 'How do I get to Lee County, VA?',
+    paragraphs: [
+      'U.S. Route 58 is the main east-west route through Lee County, while U.S. Route 421 connects Jonesville with nearby communities and the wider Southwest Virginia region. Use the interactive map above with your starting point for current turn-by-turn directions.',
+      'The Lee County Tourism office is located at 33640 Main Street, Jonesville, VA 24263 and can help with local visitor information.',
+    ],
+    links: [
+      {
+        label: 'Open driving directions',
+        href: 'https://www.google.com/maps/dir/?api=1&destination=Lee%20County%2C%20Virginia',
+      },
+    ],
+  },
+  {
+    title: 'What are the best things to do in Lee County, Virginia?',
+    paragraphs: [
+      'Popular trip ideas include hiking to White Rocks and Sand Cave, exploring Wilderness Road State Park, visiting Cumberland Gap National Historical Park, riding the Stone Mountain ATV Trail, fishing or paddling the Powell River, and spending time in Jonesville and Pennington Gap.',
+      'Use the lodging, outdoors, towns, dining and shopping, and events pages on this site to turn those stops into a day trip or a longer Southwest Virginia getaway.',
+    ],
+    items: [
+      'Cumberland Gap National Historical Park and the Wilderness Road',
+      'White Rocks, Sand Cave, and mountain overlooks',
+      'Jonesville, VA and Pennington Gap, VA',
+      'Stone Mountain ATV Trail and Powell River recreation',
+      'Local events, Appalachian heritage, artisans, dining, and shopping',
+    ],
+  },
+  {
+    title: 'How far is Lee County, VA from me?',
+    paragraphs: [
+      'Your distance and travel time depend on your starting point and destination within the county. Open the directions link above to calculate a current route to Lee County, or use Jonesville, VA 24263 as a central destination when planning your drive.',
+    ],
+  },
+  {
+    title: 'Is Fort Lee in Lee County, Virginia?',
+    paragraphs: [
+      'No. Fort Lee is in Prince George County near Petersburg and Hopewell in eastern Virginia. It is not located in Lee County, which is at the opposite end of the Commonwealth in Southwest Virginia.',
+    ],
+    links: [
+      {
+        label: 'Visit the official Fort Lee website',
+        href: 'https://home.army.mil/lee/',
+      },
+    ],
+  },
+  {
+    title: 'Where is the Dark Forest in Lee County, VA?',
+    paragraphs: [
+      'The “Dark Forest” associated with Lee County is best known as a setting from the television series Mountain Monsters and related folklore. It is not promoted as an official Lee County public attraction with verified visitor access.',
+      'Do not use entertainment reports as directions or enter private land. For a safe forest outing, choose marked public trails at Cumberland Gap National Historical Park, Wilderness Road State Park, or Lake Keokee and check current land-manager guidance before visiting.',
+    ],
+    links: [
+      {
+        label: 'Plan a Cumberland Gap visit',
+        href: 'https://www.nps.gov/cuga/planyourvisit/index.htm',
+      },
+      {
+        label: 'Explore Wilderness Road State Park',
+        href: 'https://www.dcr.virginia.gov/state-parks/wilderness-road',
+      },
+    ],
+  },
+]
+
 const pages = [
   {
+    path: '/visitor-info',
+    title: 'Lee County, VA Visitor Information',
+    description: 'Plan your visit with a Lee County, Virginia map, driving directions, local highlights, and answers to common traveler questions.',
+    label: 'Plan Your Visit',
+    intro:
+      'Use this guide to find Lee County in Southwest Virginia, choose a route, and start building a trip around Jonesville, Pennington Gap, Cumberland Gap, and the county’s mountain communities.',
+    mapEmbed: {
+      title: 'Visitor map of Lee County, Virginia',
+      src: 'https://www.google.com/maps?q=Lee%20County%2C%20Virginia&output=embed',
+      link: 'https://www.google.com/maps/dir/?api=1&destination=Lee%20County%2C%20Virginia',
+      linkLabel: 'Get directions to Lee County, VA',
+    },
+    sections: visitorInfoSections,
+  },
+  {
     path: '/calendar',
-    title: 'Calendar',
-    description: 'Upcoming events, festivals, live performances, and community happenings across Lee County.',
+    title: 'Lee County, VA Events Calendar',
+    description: 'Find upcoming festivals, live music, family activities, outdoor programs, and community events across Lee County, Virginia.',
     label: 'Lee County Events',
+    intro:
+      'Looking for things to do in Lee County, Virginia? Browse events in Jonesville, Pennington Gap, Ewing, St. Charles, Rose Hill, and neighboring Southwest Virginia communities, then use the calendar to plan your visit by date.',
     content: (
       <Suspense fallback={<div className="route-loading" role="status">Loading calendar…</div>}>
         <CalendarPage />
       </Suspense>
     ),
+    sections: [
+      {
+        title: 'Upcoming Events in Lee County, Virginia',
+        paragraphs: [
+          'The Lee County events calendar brings local happenings together in one place. Listings may include festivals, concerts and live music, arts and culture programs, outdoor activities, family events, government meetings, seasonal celebrations, and other community gatherings.',
+          'Select a date to see what is scheduled, or browse the upcoming events list when planning ahead. Each listing can include its time, venue, street address, description, and event website so visitors can confirm details with the organizer before traveling.',
+        ],
+        listTitle: 'Explore local events by type',
+        items: [
+          'Festivals and seasonal celebrations',
+          'Live music and performing arts',
+          'Family and community activities',
+          'Outdoor recreation programs',
+          'Arts, culture, and Appalachian heritage',
+          'Public meetings and civic events',
+        ],
+      },
+      {
+        title: 'Submit a Lee County Event',
+        paragraphs: [
+          'Local organizations, businesses, schools, churches, public offices, and event organizers can submit events for review without creating an account. Enter a single event through the online form, or download the CSV template to upload a full schedule of events at once.',
+          'Submitted listings remain private until a calendar administrator reviews and approves them. Include a clear title, accurate date and time, venue, location, and useful description to help residents and visitors find the event and decide whether it fits their plans.',
+        ],
+      },
+      {
+        title: 'Plan a Visit Around Local Events',
+        paragraphs: [
+          'A Lee County event can be the starting point for a longer Southwest Virginia trip. Pair a festival, concert, or community program with time in Jonesville or Pennington Gap, outdoor recreation near Cumberland Gap, local dining and shopping, Appalachian heritage sites, or an overnight stay in the county.',
+          'Event schedules can change because of weather, venue needs, or organizer updates. Follow the event website when one is provided and verify current details before making a special trip.',
+        ],
+      },
+    ],
   },
   {
     path: '/artisans',
-    title: 'Artisans',
-    description: 'Meet makers, craftspeople, and creative businesses rooted in Appalachian tradition.',
+    title: 'Lee County, Virginia Artisans',
+    description: 'Meet local makers, craftspeople, and creative businesses rooted in Lee County’s Appalachian traditions.',
     label: 'Wilderness Road Artisan Trail',
     features: [
       {
@@ -216,7 +337,7 @@ const pages = [
   },
   {
     path: '/heritage',
-    title: 'Heritage',
+    title: 'Lee County, Virginia History & Heritage',
     description:
       'Discover the rich heritage of Lee County, where history, natural beauty, and Appalachian culture come together in the far southwest corner of Virginia.',
     label: 'Lee County History',
@@ -226,8 +347,8 @@ const pages = [
   },
   {
     path: '/map',
-    title: 'Map',
-    description: 'Navigate Lee County, towns, parks, attractions, and scenic stops with a county-wide map view.',
+    title: 'Lee County, VA Map & Directions',
+    description: 'Find Jonesville, Pennington Gap, Cumberland Gap, parks, attractions, and scenic stops on a map of Lee County, Virginia.',
     label: 'County Map',
     intro:
       'Use the map below to explore Lee County, Virginia and orient your trip around the county’s towns, mountain corridors, parks, and nearby regional landmarks.',
@@ -240,8 +361,8 @@ const pages = [
   },
   {
     path: '/dine-shop',
-    title: 'Dine & Shop',
-    description: 'Find approved Lee County restaurants, cafes, shops, stores, lodging, and local services.',
+    title: 'Lee County, VA Restaurants & Shopping',
+    description: 'Find local restaurants, cafes, shops, stores, lodging, and services across Lee County, Virginia.',
     label: 'Lee County Business Directory',
     intro:
       'Browse locally submitted business listings, or send your business information to the directory administrator for review.',
@@ -253,8 +374,8 @@ const pages = [
   },
   {
     path: '/lodging',
-    title: 'Lodging',
-    description: 'Browse places to stay, from cozy rentals to convenient overnight options.',
+    title: 'Places to Stay in Lee County, VA',
+    description: 'Browse Lee County cabins, vacation rentals, campgrounds, RV sites, and other convenient overnight options.',
     label: 'Places to Stay',
     features: [
       {
@@ -415,7 +536,7 @@ const pages = [
   },
   {
     path: '/outdoors',
-    title: 'Outdoors',
+    title: 'Outdoor Things to Do in Lee County, VA',
     description: 'Plan your time on trails, overlooks, ATV routes, and recreation areas.',
     label: 'Outdoor Recreation',
     intro:
@@ -583,8 +704,8 @@ const pages = [
   },
   {
     path: '/towns',
-    title: 'Towns',
-    description: 'Get to know the communities that shape the character and hospitality of Lee County.',
+    title: 'Jonesville, VA & Lee County Towns',
+    description: 'Explore Jonesville, Pennington Gap, and the mountain communities that shape the character of Lee County, Virginia.',
     label: 'Lee County Communities',
     features: [
       {
@@ -636,8 +757,8 @@ const pages = [
   },
   {
     path: '/weddings',
-    title: 'Weddings',
-    description: 'Explore venues and local services for mountain weddings and celebrations.',
+    title: 'Lee County, VA Wedding Venues',
+    description: 'Explore local venues and services for mountain weddings and celebrations in Lee County, Virginia.',
     label: 'Wedding Venues',
     features: [
       {
