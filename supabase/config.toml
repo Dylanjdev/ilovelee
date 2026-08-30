@@ -1,0 +1,7 @@
+project_id = "ilovelee"
+
+# Calendar applications cannot attach Supabase authentication headers when they
+# refresh a subscription. The function itself only reads rows that the public
+# events RLS policy already exposes.
+[functions.calendar-feed]
+verify_jwt = false

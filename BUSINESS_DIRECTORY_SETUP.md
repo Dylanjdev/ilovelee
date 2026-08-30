@@ -1,6 +1,6 @@
 # Supabase business directory setup
 
-The Dine & Shop page now uses Supabase as its only directory source. Visitors can submit a business for review, public visitors can read approved listings, and calendar administrators can approve, reject, and edit business information.
+The Directory page now uses Supabase as its only directory source. Visitors can submit a business for review, public visitors can read approved listings, and calendar administrators can approve, reject, and edit business information.
 
 ## 1. Install the database schema
 

@@ -8,7 +8,7 @@ const navLinks = [
   { to: '/artisans', label: 'Artisans' },
   { to: '/heritage', label: 'Heritage' },
   { to: '/map', label: 'Map' },
-  { to: '/dine-shop', label: 'Dine & Shop' },
+  { to: '/dine-shop', label: 'Directory' },
   { to: '/lodging', label: 'Lodging' },
   { to: '/outdoors', label: 'Outdoors' },
   { to: '/towns', label: 'Towns' },
@@ -109,7 +109,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
               <a href={toHref('/map')} onClick={(event) => handleInternalClick(event, '/map')}>Map</a>
               <a href={toHref('/lodging')} onClick={(event) => handleInternalClick(event, '/lodging')}>Lodging</a>
               <a href={toHref('/outdoors')} onClick={(event) => handleInternalClick(event, '/outdoors')}>Outdoors</a>
-              <a href={toHref('/dine-shop')} onClick={(event) => handleInternalClick(event, '/dine-shop')}>Dine & Shop</a>
+              <a href={toHref('/dine-shop')} onClick={(event) => handleInternalClick(event, '/dine-shop')}>Directory</a>
             </nav>
             <div className="footer-column footer-social">
               <p className="footer-heading">Connect</p>

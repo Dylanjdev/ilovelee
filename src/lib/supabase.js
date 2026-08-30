@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabasePublishableKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY
+const configuredCalendarFeedUrl = import.meta.env.VITE_CALENDAR_FEED_URL
 
 function getInitialAuthCallback() {
   if (typeof window === 'undefined') {
@@ -37,6 +38,9 @@ function getInitialAuthCallback() {
 // Capture this before createClient processes and removes Auth tokens from the URL.
 export const initialAuthCallback = getInitialAuthCallback()
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey)
+export const calendarFeedUrl = configuredCalendarFeedUrl || (
+  supabaseUrl ? `${supabaseUrl.replace(/\/$/, '')}/functions/v1/calendar-feed` : ''
+)
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabasePublishableKey, {

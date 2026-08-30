@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   completeInitialAuthCallback,
+  calendarFeedUrl,
   initialAuthCallback,
   isSupabaseConfigured,
   supabase,
 } from '../lib/supabase'
+import {
+  googleCalendarSubscriptionUrl,
+  toWebcalUrl,
+} from '../lib/calendarSubscription'
 import { EVENT_CSV_HEADERS, parseEventCsv } from '../lib/eventCsv'
 import './CalendarPage.css'
 
@@ -1224,6 +1229,81 @@ function UpcomingEventItem({ event, onSelect }) {
   )
 }
 
+function CalendarSubscription({ feedUrl, onClose }) {
+  const [copyStatus, setCopyStatus] = useState('')
+  const webcalUrl = toWebcalUrl(feedUrl)
+  const googleCalendarUrl = googleCalendarSubscriptionUrl(feedUrl)
+
+  const copyFeedUrl = async () => {
+    setCopyStatus('')
+
+    try {
+      await navigator.clipboard.writeText(feedUrl)
+      setCopyStatus('Subscription link copied.')
+    } catch {
+      const temporaryField = document.createElement('textarea')
+      temporaryField.value = feedUrl
+      temporaryField.setAttribute('readonly', '')
+      temporaryField.style.position = 'fixed'
+      temporaryField.style.opacity = '0'
+      document.body.appendChild(temporaryField)
+      temporaryField.select()
+      const copied = document.execCommand('copy')
+      temporaryField.remove()
+      setCopyStatus(copied ? 'Subscription link copied.' : 'Copy the link from the field below.')
+    }
+  }
+
+  return (
+    <section id="calendar-subscription-panel" className="calendar-subscription" aria-labelledby="calendar-subscription-title">
+      <div className="calendar-subscription-heading">
+        <div>
+          <p className="calendar-eyebrow">Never miss an event</p>
+          <h2 id="calendar-subscription-title">Subscribe to all published events</h2>
+          <p>
+            Add this live calendar once. New events and schedule changes will sync automatically
+            whenever your calendar app refreshes its subscriptions.
+          </p>
+        </div>
+        <button type="button" className="calendar-button button-quiet" onClick={onClose}>Close</button>
+      </div>
+
+      <div className="calendar-subscription-actions">
+        <a className="calendar-button button-primary" href={webcalUrl}>
+          Apple or calendar app
+        </a>
+        <a
+          className="calendar-button button-quiet"
+          href={googleCalendarUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google Calendar
+        </a>
+        <button type="button" className="calendar-button button-quiet" onClick={copyFeedUrl}>
+          Copy link for Outlook
+        </button>
+      </div>
+
+      <div className="calendar-subscription-link">
+        <label htmlFor="calendar-feed-url">Calendar subscription URL</label>
+        <div>
+          <input id="calendar-feed-url" type="url" value={feedUrl} readOnly onFocus={(event) => event.target.select()} />
+          <button type="button" className="calendar-button button-quiet" onClick={copyFeedUrl}>Copy</button>
+        </div>
+      </div>
+
+      {copyStatus && <p className="calendar-copy-status" role="status">{copyStatus}</p>}
+      <p className="calendar-subscription-note">
+        If Google does not add it directly, use <strong>Other calendars</strong>, then
+        <strong> From URL</strong> on a computer and paste this URL. In Outlook, choose
+        <strong> Add calendar</strong>, then <strong>Subscribe from web</strong>. Calendar providers
+        control refresh timing, so a change may take several hours to appear.
+      </p>
+    </section>
+  )
+}
+
 function CalendarPage() {
   const today = useMemo(() => new Date(), [])
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
@@ -1236,6 +1316,7 @@ function CalendarPage() {
   const [upcomingError, setUpcomingError] = useState('')
   const [upcomingExpanded, setUpcomingExpanded] = useState(false)
   const [submissionOpen, setSubmissionOpen] = useState(false)
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false)
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(isSupabaseConfigured)
   const [adminUserId, setAdminUserId] = useState(null)
@@ -1622,6 +1703,16 @@ function CalendarPage() {
         <div className="calendar-top-actions">
           <button
             type="button"
+            className="calendar-button button-quiet"
+            aria-expanded={subscriptionOpen}
+            aria-controls="calendar-subscription-panel"
+            disabled={!calendarFeedUrl}
+            onClick={() => setSubscriptionOpen((open) => !open)}
+          >
+            {subscriptionOpen ? 'Close subscription' : 'Subscribe to calendar'}
+          </button>
+          <button
+            type="button"
             className="calendar-button button-primary"
             aria-expanded={submissionOpen}
             aria-controls="event-submission-form"
@@ -1652,6 +1743,13 @@ function CalendarPage() {
           <strong>Calendar preview</strong>
           <span>Connect Supabase to load events, accept submissions, and enable sign in.</span>
         </div>
+      )}
+
+      {subscriptionOpen && calendarFeedUrl && (
+        <CalendarSubscription
+          feedUrl={calendarFeedUrl}
+          onClose={() => setSubscriptionOpen(false)}
+        />
       )}
 
       {adminOpen && !isSupabaseConfigured && (

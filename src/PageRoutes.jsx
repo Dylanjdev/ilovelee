@@ -361,9 +361,9 @@ const pages = [
   },
   {
     path: '/dine-shop',
-    title: 'Lee County, VA Restaurants & Shopping',
-    description: 'Find local restaurants, cafes, shops, stores, lodging, and services across Lee County, Virginia.',
-    label: 'Lee County Business Directory',
+    title: 'Lee County Business Directory',
+    description: 'Browse local restaurants, cafes, shops, lodging, and services across Lee County, Virginia.',
+    label: 'Restaurants, Shops & Local Services',
     intro:
       'Browse locally submitted business listings, or send your business information to the directory administrator for review.',
     content: (

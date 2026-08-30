@@ -30,9 +30,9 @@ export const pageMetadata = {
       'Find Lee County in Southwest Virginia and map your route to Jonesville, Pennington Gap, Cumberland Gap, parks, attractions, and scenic stops.',
   },
   '/dine-shop': {
-    title: 'Lee County, VA Restaurants & Shopping | I Love Lee',
+    title: 'Lee County, VA Business Directory | I Love Lee',
     description:
-      'Find restaurants, cafes, shops, lodging, and local businesses in Jonesville, Pennington Gap, and communities across Lee County, Virginia.',
+      'Browse the Lee County, Virginia business directory for restaurants, cafes, shops, lodging, and local services in Jonesville, Pennington Gap, and nearby communities.',
   },
   '/lodging': {
     title: 'Places to Stay in Lee County, VA | I Love Lee',

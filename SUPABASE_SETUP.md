@@ -71,7 +71,51 @@ npm run dev
 
 Open `/calendar`, choose **Admin sign in**, and use the account created above. Invitation links open the password-creation form automatically. Supabase stores and refreshes the session in browser local storage, so the user remains signed in on that device until they sign out or the session is revoked.
 
-## 4. Add the production values to GitHub Pages
+## 4. Deploy the live calendar subscription feed
+
+The **Subscribe to calendar** button uses a public iCalendar feed served by the
+`calendar-feed` Supabase Edge Function. Calendar apps revisit this URL and pick
+up newly published events, edits, unpublishing, and deletions automatically.
+Only approved, published events are included; the query still passes through
+the existing public Row Level Security policy.
+
+Deploy the function once from the repository root:
+
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase functions deploy calendar-feed
+```
+
+The checked-in [`supabase/config.toml`](supabase/config.toml) makes this one
+function public because calendar apps cannot send Supabase authentication
+headers. No additional secrets are required: hosted Edge Functions receive the
+project URL and public API keys automatically.
+
+Verify the production feed in a private browser window:
+
+```text
+https://YOUR_PROJECT_REF.supabase.co/functions/v1/calendar-feed
+```
+
+It should return a file named `lee-county-events.ics` with a
+`text/calendar` content type. The website derives this URL from
+`VITE_SUPABASE_URL`. Set `VITE_CALENDAR_FEED_URL` only if the feed is later
+moved behind a custom domain.
+
+Subscribers can use the site button to open Apple Calendar or another installed
+calendar app, add the live feed to Google Calendar, or copy the URL for
+Outlook's **Add calendar > Subscribe from web** flow. Calendar apps choose their
+own refresh schedules, so published changes can take several hours to appear.
+Importing a downloaded `.ics` file is only a snapshot and will not keep syncing.
+
+Redeploy `calendar-feed` whenever files under `supabase/functions` change:
+
+```bash
+npx supabase functions deploy calendar-feed
+```
+
+## 5. Add the production values to GitHub Pages
 
 This repository's Pages workflow is prepared to inject the Supabase values during the build.
 
@@ -83,14 +127,14 @@ The public Supabase project URL is already configured in the deployment workflow
 
 Vite embeds both values in the browser bundle. That is expected for a Supabase publishable key; security comes from the SQL grants and RLS policies. A secret or `service_role` key must never be added here.
 
-## 5. Recommended Auth settings
+## 6. Recommended Auth settings
 
 - Require passwords of at least 12 characters and a mix of character types.
 - Keep public email signups disabled. Every Auth user is automatically granted calendar access.
 - Create only approved calendar users through **Authentication > Users**.
 - If access must be revoked immediately, remove the `calendar_admins` row and use **Authentication > Users** to sign the user out or delete/ban the account.
 
-## 6. Review public event submissions
+## 7. Review public event submissions
 
 1. Open `/calendar` and choose **Admin sign in**.
 2. Open **Manage calendar** after signing in.
@@ -99,7 +143,7 @@ Vite embeds both values in the browser bundle. That is expected for a Supabase p
 
 Visitors use **Submit events** without creating an account. They can enter one event normally or choose **Upload CSV** to import up to 100 events from a spreadsheet with one shared name and email address. A downloadable template provides the required columns, and the site validates and previews every row before submission. CSV dates may use `YYYY-MM-DD` or `M/D/YYYY`; times may use 24-hour time or values such as `6:30 PM`. The batch is saved atomically, so none of its events are created if any one event fails validation. Submitted events remain invisible to public visitors until an administrator approves them. Deleting an event also deletes its private submitter contact record.
 
-## 7. Event fields
+## 8. Event fields
 
 The CSV template uses these columns: `title`, `category`, `start_date`, `start_time`, `end_date`, `end_time`, `all_day`, `venue`, `address`, `website`, and `description`. The public form and administrator editor support the same event details. The administrator editor also controls review and draft/published status. Times are saved and displayed in `America/New_York` (Eastern Time). Draft events are visible only to calendar admins.
 

@@ -140,12 +140,98 @@
 
 .calendar-setup-card,
 .calendar-admin-panel,
+.calendar-subscription,
 .event-editor,
 .calendar-load-error {
   padding: clamp(1rem, 3vw, 1.5rem);
   background: #ffffff;
   border: 1px solid var(--line);
   box-shadow: 0 16px 34px rgba(31, 37, 48, 0.07);
+}
+
+.calendar-subscription {
+  margin-bottom: 1rem;
+  border-top: 4px solid #385a46;
+}
+
+.calendar-subscription-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.calendar-subscription-heading h2 {
+  margin: 0;
+  color: #1f2530;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+}
+
+.calendar-subscription-heading p:last-child {
+  max-width: 72ch;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.calendar-subscription-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.calendar-subscription-link {
+  display: grid;
+  gap: 0.38rem;
+  max-width: 820px;
+  margin-top: 1rem;
+}
+
+.calendar-subscription-link label {
+  color: #384352;
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.calendar-subscription-link > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+}
+
+.calendar-subscription-link input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0.62rem 0.7rem;
+  color: #384352;
+  background: #f7f8f7;
+  border: 1px solid var(--line);
+  outline: none;
+}
+
+.calendar-subscription-link input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(143, 29, 44, 0.12);
+}
+
+.calendar-copy-status,
+.calendar-subscription-note {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+}
+
+.calendar-copy-status {
+  color: #2f6a41;
+  font-weight: 750;
+}
+
+.calendar-subscription-note {
+  max-width: 78ch;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .calendar-setup-card {
@@ -1337,6 +1423,7 @@
 
   .calendar-admin-toggle-row,
   .calendar-toolbar,
+  .calendar-subscription-heading,
   .event-editor-heading,
   .event-csv-heading,
   .event-csv-preview-heading,
@@ -1354,6 +1441,14 @@
 
   .calendar-top-actions {
     display: grid;
+    width: 100%;
+  }
+
+  .calendar-subscription-actions {
+    display: grid;
+  }
+
+  .calendar-subscription-actions .calendar-button {
     width: 100%;
   }
 
@@ -1453,6 +1548,10 @@
   .event-form-actions,
   .event-card-actions {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-subscription-link > div {
     grid-template-columns: 1fr;
   }
 }
