@@ -1403,7 +1403,7 @@
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 760px) {
   .calendar-auth-backdrop {
     align-items: end;
     padding: 0;
@@ -1441,7 +1441,15 @@
 
   .calendar-top-actions {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
+    gap: 0.55rem;
+  }
+
+  .calendar-top-actions .calendar-button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
   }
 
   .calendar-subscription-actions {

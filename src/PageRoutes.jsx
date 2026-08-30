@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
 import SectionPage from './components/SectionPage'
-import crockettStudio from './assets/crockettstudio.webp'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
 import whiteRocks from './assets/whiterock.webp'
@@ -31,6 +30,7 @@ import bird from './assets/bird.webp'
 
 const DineShopPlaces = lazy(() => import('./components/DineShopPlaces'))
 const CalendarPage = lazy(() => import('./components/CalendarPage'))
+const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
 
 const heritageSections = [
   {
@@ -319,21 +319,13 @@ const pages = [
     title: 'Lee County, Virginia Artisans',
     description: 'Meet local makers, craftspeople, and creative businesses rooted in Lee County’s Appalachian traditions.',
     label: 'Wilderness Road Artisan Trail',
-    features: [
-      {
-        title: 'Crockett Studio',
-        location: 'Caylor, Lee County',
-        image: crockettStudio,
-        imageAlt: 'Crockett Studio artwork and countryside view',
-        imageWidth: 512,
-        imageHeight: 300,
-        description:
-          'Located on the Wilderness Road Artisan Trail in Caylor, Crockett Studio features paintings inspired by the Virginia countryside. The studio sits near the Chadwell Station Trailhead in Cumberland Gap National Historical Park, with a view from the windows that feels like part of the work.',
-        note: 'Open by appointment.',
-        phone: '276-445-4967',
-        email: 'sscrockett@peoplepc.com',
-      },
-    ],
+    intro:
+      'Browse approved artisan profiles, or submit a Lee County artist, maker, craftsperson, or creative business for review.',
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading artisan directory…</div>}>
+        <ArtisanDirectory />
+      </Suspense>
+    ),
   },
   {
     path: '/heritage',
