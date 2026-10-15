@@ -199,6 +199,70 @@ grant execute on function public.submit_business_listing(
   text, text, text, text, text, text, text, text, text
 ) to anon, authenticated;
 
+-- Submit up to 100 businesses in one transaction. Reusing submit_business_listing
+-- keeps validation and pending-only security identical for single and CSV submissions.
+create or replace function public.submit_business_listings(
+  p_businesses jsonb,
+  p_submitter_name text,
+  p_submitter_email text
+)
+returns uuid[]
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  business_data jsonb;
+  business_number integer := 0;
+  new_business_id uuid;
+  new_business_ids uuid[] := '{}'::uuid[];
+begin
+  if jsonb_typeof(p_businesses) is distinct from 'array' then
+    raise exception 'Businesses must be provided as a list.';
+  end if;
+
+  if jsonb_array_length(p_businesses) not between 1 and 100 then
+    raise exception 'Submit between 1 and 100 businesses at a time.';
+  end if;
+
+  for business_data in
+    select value from jsonb_array_elements(p_businesses)
+  loop
+    business_number := business_number + 1;
+
+    if jsonb_typeof(business_data) is distinct from 'object' then
+      raise exception 'Business % must contain business details.', business_number;
+    end if;
+
+    begin
+      select public.submit_business_listing(
+        p_name => business_data ->> 'name',
+        p_category => business_data ->> 'category',
+        p_description => business_data ->> 'description',
+        p_address => business_data ->> 'address',
+        p_phone => business_data ->> 'phone',
+        p_business_email => business_data ->> 'business_email',
+        p_website_url => business_data ->> 'website_url',
+        p_submitter_name => p_submitter_name,
+        p_submitter_email => p_submitter_email
+      )
+      into new_business_id;
+    exception
+      when others then
+        raise exception 'Business %: %', business_number, sqlerrm;
+    end;
+
+    new_business_ids := array_append(new_business_ids, new_business_id);
+  end loop;
+
+  return new_business_ids;
+end;
+$$;
+
+revoke all on function public.submit_business_listings(jsonb, text, text) from public;
+grant execute on function public.submit_business_listings(jsonb, text, text)
+  to anon, authenticated;
+
 -- Confirm that a newly submitted business owns the logo object path it uploaded.
 create or replace function public.attach_business_logo(
   p_business_id uuid,

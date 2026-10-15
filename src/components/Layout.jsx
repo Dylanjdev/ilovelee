@@ -4,11 +4,12 @@ import logo from '../assets/ilovelee.webp'
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/visitor-info', label: 'Visitor Info' },
+  { to: '/guide-to-lee-county-virginia', label: 'Guide' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/artisans', label: 'Artisans' },
   { to: '/heritage', label: 'Heritage' },
   { to: '/map', label: 'Map' },
-  { to: '/dine-shop', label: 'Directory' },
+  { to: '/directory', label: 'Directory' },
   { to: '/lodging', label: 'Lodging' },
   { to: '/outdoors', label: 'Outdoors' },
   { to: '/towns', label: 'Towns' },
@@ -106,10 +107,11 @@ function Layout({ children, currentPath, navigate, toHref }) {
             <nav className="footer-column footer-nav" aria-label="Footer">
               <p className="footer-heading">Explore</p>
               <a href={toHref('/visitor-info')} onClick={(event) => handleInternalClick(event, '/visitor-info')}>Visitor Info</a>
+              <a href={toHref('/guide-to-lee-county-virginia')} onClick={(event) => handleInternalClick(event, '/guide-to-lee-county-virginia')}>Travel Guide</a>
               <a href={toHref('/map')} onClick={(event) => handleInternalClick(event, '/map')}>Map</a>
               <a href={toHref('/lodging')} onClick={(event) => handleInternalClick(event, '/lodging')}>Lodging</a>
               <a href={toHref('/outdoors')} onClick={(event) => handleInternalClick(event, '/outdoors')}>Outdoors</a>
-              <a href={toHref('/dine-shop')} onClick={(event) => handleInternalClick(event, '/dine-shop')}>Directory</a>
+              <a href={toHref('/directory')} onClick={(event) => handleInternalClick(event, '/directory')}>Directory</a>
             </nav>
             <div className="footer-column footer-social">
               <p className="footer-heading">Connect</p>

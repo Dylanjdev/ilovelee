@@ -12,7 +12,7 @@ The script creates:
 
 - `businesses`, containing the public listing information and review status.
 - `business_submission_contacts`, containing private submitter contact information.
-- `submit_business_listing(...)`, a public submission function that always creates a pending listing.
+- `submit_business_listing(...)` and `submit_business_listings(...)`, public submission functions that always create pending listings. The bulk function accepts up to 100 businesses in one transaction.
 - A public `business-logos` Storage bucket restricted to JPG, PNG, and WebP files up to 2 MB.
 - Row Level Security policies that expose only approved businesses to public visitors.
 
@@ -41,13 +41,15 @@ Restart the Vite server after changing environment variables.
 
 ## 3. Review submissions
 
-1. Open `/dine-shop`.
+1. Open `/directory`.
 2. Choose **Admin sign in**.
 3. Sign in with an approved calendar administrator account.
 4. Review the Pending, Approved, and Rejected tabs.
 5. Approve or reject a submission directly, choose **Edit information**, or permanently delete a listing after confirming the deletion.
 
 Approved records appear in the public directory immediately. Rejected and pending records remain visible only to administrators. Submitters can include an optional logo, and administrators can upload, replace, or remove it while editing a listing. Deleting a listing also removes its private submission contact record and attempts to remove its stored logo.
+
+Visitors can submit one listing at a time or download the CSV template and upload up to 100 businesses together. Bulk submissions share one private submitter contact and do not include logos; an administrator can add logos while reviewing the imported listings.
 
 ## Production spam protection
 

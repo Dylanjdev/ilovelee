@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { BUSINESS_CSV_HEADERS, parseBusinessCsv } from '../lib/businessCsv'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import './DineShopPlaces.css'
 
@@ -20,6 +21,8 @@ const reviewStatuses = [
 
 const logoBucket = 'business-logos'
 const maxLogoSize = 2 * 1024 * 1024
+const maxBulkBusinesses = 100
+const maxCsvFileSize = 2 * 1024 * 1024
 const logoFileExtensions = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -118,6 +121,18 @@ function submissionContact(business) {
   return Array.isArray(contact) ? contact[0] : contact
 }
 
+function businessSubmissionPayload(business) {
+  return {
+    name: business.name.trim(),
+    category: business.category,
+    description: business.description.trim() || null,
+    address: business.address.trim(),
+    phone: business.phone.trim() || null,
+    business_email: business.business_email.trim().toLowerCase() || null,
+    website_url: normalizeWebsiteUrl(business.website_url),
+  }
+}
+
 function LoadingCards() {
   return (
     <div className="places-grid places-grid-loading" aria-hidden="true">
@@ -140,8 +155,12 @@ function LoadingCards() {
 }
 
 function BusinessSubmissionForm({ onCancel, onSubmitted }) {
+  const [submissionMode, setSubmissionMode] = useState('single')
   const [form, setForm] = useState(emptySubmission)
   const [logoFile, setLogoFile] = useState(null)
+  const [csvBusinesses, setCsvBusinesses] = useState([])
+  const [csvErrors, setCsvErrors] = useState([])
+  const [csvFileName, setCsvFileName] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -149,30 +168,90 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
+  const changeMode = (mode) => {
+    setSubmissionMode(mode)
+    setError('')
+  }
+
+  const handleCsvFile = async (changeEvent) => {
+    const [file] = changeEvent.target.files
+    setCsvBusinesses([])
+    setCsvErrors([])
+    setCsvFileName(file?.name ?? '')
+    setError('')
+
+    if (!file) return
+    if (file.size > maxCsvFileSize) {
+      setCsvErrors(['The CSV file must be 2 MB or smaller.'])
+      return
+    }
+
+    try {
+      const parsed = parseBusinessCsv(await file.text(), {
+        categories: categories.slice(1),
+        maxBusinesses: maxBulkBusinesses,
+      })
+      setCsvBusinesses(parsed.businesses)
+      setCsvErrors(parsed.errors)
+    } catch (fileError) {
+      setCsvErrors([fileError.message || 'The CSV file could not be read.'])
+    }
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setSubmitting(true)
     setError('')
 
     try {
-      validateLogoFile(logoFile)
+      const forms = submissionMode === 'csv' ? csvBusinesses : [form]
+      if (submissionMode === 'csv' && csvErrors.length > 0) {
+        throw new Error('Fix the CSV errors and upload the file again before submitting.')
+      }
+      if (forms.length === 0) {
+        throw new Error('Choose a CSV file containing at least one business.')
+      }
+      if (submissionMode === 'single') validateLogoFile(logoFile)
+
+      const payloads = forms.map((businessForm) => businessSubmissionPayload(businessForm))
+      const bulkSuccessMessage = `${forms.length} businesses were submitted and are waiting for administrator approval.`
+      setSubmitting(true)
 
       // A filled honeypot is treated as a successful submission without writing spam.
       if (form.company) {
-        onSubmitted()
+        onSubmitted(submissionMode === 'csv' ? bulkSuccessMessage : undefined)
         return
       }
 
-      const { data: businessId, error: submitError } = await supabase.rpc('submit_business_listing', {
-        p_name: form.name.trim(),
-        p_category: form.category,
-        p_description: form.description.trim() || null,
-        p_address: form.address.trim(),
-        p_phone: form.phone.trim() || null,
-        p_business_email: form.business_email.trim() || null,
-        p_website_url: normalizeWebsiteUrl(form.website_url),
+      const submitter = {
         p_submitter_name: form.submitter_name.trim(),
         p_submitter_email: form.submitter_email.trim(),
+      }
+
+      if (submissionMode === 'csv') {
+        const { data: businessIds, error: submitError } = await supabase.rpc('submit_business_listings', {
+          p_businesses: payloads,
+          ...submitter,
+        })
+
+        if (submitError) throw submitError
+        if (!Array.isArray(businessIds) || businessIds.length !== payloads.length) {
+          throw new Error('The bulk submission did not return all expected business IDs.')
+        }
+
+        onSubmitted(bulkSuccessMessage)
+        return
+      }
+
+      const payload = payloads[0]
+      const { data: businessId, error: submitError } = await supabase.rpc('submit_business_listing', {
+        p_name: payload.name,
+        p_category: payload.category,
+        p_description: payload.description,
+        p_address: payload.address,
+        p_phone: payload.phone,
+        p_business_email: payload.business_email,
+        p_website_url: payload.website_url,
+        ...submitter,
       })
 
       if (submitError) throw submitError
@@ -199,8 +278,6 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
         }
 
         if (logoError) {
-          setForm(emptySubmission)
-          setLogoFile(null)
           onSubmitted(
             'Your business was submitted, but the logo could not be attached. An administrator can add it while reviewing the listing.',
           )
@@ -208,8 +285,6 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
         }
       }
 
-      setForm(emptySubmission)
-      setLogoFile(null)
       onSubmitted()
     } catch (submitError) {
       setError(submitError.message || 'Your business could not be submitted.')
@@ -224,7 +299,7 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
         <div>
           <p className="directory-eyebrow">Free local listing</p>
           <h2 id="business-submission-title">Get your business listed</h2>
-          <p>Send us the details below. Your listing will appear after an administrator approves it.</p>
+          <p>Enter one business or upload a CSV spreadsheet with up to {maxBulkBusinesses} listings.</p>
         </div>
         <button type="button" className="directory-button button-quiet" onClick={onCancel}>
           Close
@@ -232,96 +307,199 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
       </div>
 
       <form className="directory-form" onSubmit={handleSubmit}>
-        <div className="directory-form-grid">
-          <label>
-            <span>Business name</span>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(event) => updateField('name', event.target.value)}
-              maxLength="140"
-              required
-            />
-          </label>
-
-          <label>
-            <span>Category</span>
-            <select
-              value={form.category}
-              onChange={(event) => updateField('category', event.target.value)}
-            >
-              {categories.slice(1).map((category) => (
-                <option value={category.id} key={category.id}>{category.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field-wide">
-            <span>Business address</span>
-            <input
-              type="text"
-              value={form.address}
-              onChange={(event) => updateField('address', event.target.value)}
-              maxLength="300"
-              placeholder="Street, town, state, and ZIP code"
-              required
-            />
-          </label>
-
-          <label>
-            <span>Business phone</span>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(event) => updateField('phone', event.target.value)}
-              maxLength="50"
-            />
-          </label>
-
-          <label>
-            <span>Public business email</span>
-            <input
-              type="email"
-              value={form.business_email}
-              onChange={(event) => updateField('business_email', event.target.value)}
-              maxLength="254"
-            />
-          </label>
-
-          <label className="field-wide">
-            <span>Website</span>
-            <input
-              type="text"
-              inputMode="url"
-              value={form.website_url}
-              onChange={(event) => updateField('website_url', event.target.value)}
-              maxLength="500"
-              placeholder="https://example.com"
-            />
-          </label>
-
-          <label className="field-wide">
-            <span>Business description</span>
-            <textarea
-              value={form.description}
-              onChange={(event) => updateField('description', event.target.value)}
-              maxLength="2000"
-              rows="5"
-            />
-          </label>
-
-          <label className="field-wide logo-upload-field">
-            <span>Business logo <small>Optional · JPG, PNG, or WebP · 2 MB maximum</small></span>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) => {
-                setLogoFile(event.target.files?.[0] ?? null)
-                setError('')
-              }}
-            />
-          </label>
+        <div className="business-submission-modes" role="group" aria-label="Business submission method">
+          <button
+            type="button"
+            className={submissionMode === 'single' ? 'active' : undefined}
+            aria-pressed={submissionMode === 'single'}
+            onClick={() => changeMode('single')}
+          >
+            Enter one business
+          </button>
+          <button
+            type="button"
+            className={submissionMode === 'csv' ? 'active' : undefined}
+            aria-pressed={submissionMode === 'csv'}
+            onClick={() => changeMode('csv')}
+          >
+            Upload CSV
+          </button>
         </div>
+
+        {submissionMode === 'single' ? (
+          <div className="directory-form-grid business-single-fields">
+            <label>
+              <span>Business name</span>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(event) => updateField('name', event.target.value)}
+                maxLength="140"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Category</span>
+              <select
+                value={form.category}
+                onChange={(event) => updateField('category', event.target.value)}
+              >
+                {categories.slice(1).map((category) => (
+                  <option value={category.id} key={category.id}>{category.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field-wide">
+              <span>Business address</span>
+              <input
+                type="text"
+                value={form.address}
+                onChange={(event) => updateField('address', event.target.value)}
+                maxLength="300"
+                placeholder="Street, town, state, and ZIP code"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Business phone</span>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(event) => updateField('phone', event.target.value)}
+                maxLength="50"
+              />
+            </label>
+
+            <label>
+              <span>Public business email</span>
+              <input
+                type="email"
+                value={form.business_email}
+                onChange={(event) => updateField('business_email', event.target.value)}
+                maxLength="254"
+              />
+            </label>
+
+            <label className="field-wide">
+              <span>Website</span>
+              <input
+                type="text"
+                inputMode="url"
+                value={form.website_url}
+                onChange={(event) => updateField('website_url', event.target.value)}
+                maxLength="500"
+                placeholder="https://example.com"
+              />
+            </label>
+
+            <label className="field-wide">
+              <span>Business description</span>
+              <textarea
+                value={form.description}
+                onChange={(event) => updateField('description', event.target.value)}
+                maxLength="2000"
+                rows="5"
+              />
+            </label>
+
+            <label className="field-wide logo-upload-field">
+              <span>Business logo <small>Optional · JPG, PNG, or WebP · 2 MB maximum</small></span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  setLogoFile(event.target.files?.[0] ?? null)
+                  setError('')
+                }}
+              />
+            </label>
+          </div>
+        ) : (
+          <section className="business-csv-panel" aria-labelledby="business-csv-title">
+            <div className="business-csv-heading">
+              <div>
+                <h3 id="business-csv-title">Upload your business spreadsheet</h3>
+                <p>
+                  Replace or delete the template example before submitting. Name, category,
+                  and address are required. Each upload uses the contact information below,
+                  and administrators can add logos while reviewing the listings.
+                </p>
+              </div>
+              <a
+                className="directory-button button-quiet"
+                href={`${import.meta.env.BASE_URL}business-upload-template.csv`}
+                download
+              >
+                Download CSV template
+              </a>
+            </div>
+
+            <p className="business-csv-columns">
+              <strong>Columns:</strong> {BUSINESS_CSV_HEADERS.join(', ')}
+            </p>
+
+            <label className="business-csv-file-field">
+              <span>Choose CSV file</span>
+              <input type="file" accept=".csv,text/csv" onChange={handleCsvFile} />
+              <small>Maximum {maxBulkBusinesses} businesses and 2 MB.</small>
+            </label>
+
+            {csvErrors.length > 0 && (
+              <div className="business-csv-errors" role="alert">
+                <strong>{csvFileName || 'CSV'} could not be submitted:</strong>
+                <ul>
+                  {csvErrors.map((csvError, index) => <li key={`${index}-${csvError}`}>{csvError}</li>)}
+                </ul>
+              </div>
+            )}
+
+            {csvBusinesses.length > 0 && (
+              <div className="business-csv-preview">
+                <div className="business-csv-preview-heading">
+                  <div>
+                    <strong>{csvFileName}</strong>
+                    <span>
+                      {csvBusinesses.length} business{csvBusinesses.length === 1 ? '' : 'es'} ready
+                    </span>
+                  </div>
+                  {csvErrors.length === 0 && <span className="business-csv-ready">Ready to submit</span>}
+                </div>
+                <div className="business-csv-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Row</th>
+                        <th scope="col">Business</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Contact</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvBusinesses.map((business) => (
+                        <tr key={business.csv_row}>
+                          <td>{business.csv_row}</td>
+                          <td>
+                            <strong>{business.name}</strong>
+                            <span>{business.address}</span>
+                          </td>
+                          <td>{categoryLabel(business.category)}</td>
+                          <td>
+                            {business.phone && <span>{business.phone}</span>}
+                            {business.business_email && <span>{business.business_email}</span>}
+                            {!business.phone && !business.business_email && '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         <fieldset className="submitter-fields">
           <legend>Your contact information</legend>
@@ -364,8 +542,16 @@ function BusinessSubmissionForm({ onCancel, onSubmitted }) {
         {error && <p className="directory-message message-error" role="alert">{error}</p>}
 
         <div className="directory-form-actions">
-          <button type="submit" className="directory-button button-primary" disabled={submitting}>
-            {submitting ? 'Sending…' : 'Submit for approval'}
+          <button
+            type="submit"
+            className="directory-button button-primary"
+            disabled={submitting || (submissionMode === 'csv' && (csvBusinesses.length === 0 || csvErrors.length > 0))}
+          >
+            {submitting
+              ? 'Sending…'
+              : submissionMode === 'csv'
+                ? `Submit ${csvBusinesses.length} business${csvBusinesses.length === 1 ? '' : 'es'} for approval`
+                : 'Submit for approval'}
           </button>
           <button type="button" className="directory-button button-quiet" onClick={onCancel} disabled={submitting}>
             Cancel

@@ -9,13 +9,19 @@ const appShell = join(distDir, 'index.html')
 const appShellHtml = await readFile(appShell, 'utf8')
 const siteOrigin = 'https://discoverleeva.com'
 const assetFiles = await readdir(join(distDir, 'assets'))
+const legacyRedirects = {
+  '/dine-shop': '/directory',
+  '/dineandshop': '/directory',
+}
 
 const findAsset = (prefix, extension) =>
   assetFiles.find((file) => file.startsWith(prefix) && file.endsWith(extension))
 
 const pageRoutesChunk = findAsset('PageRoutes-', '.js')
+const ultimateGuideChunk = findAsset('UltimateGuide-', '.js')
+const ultimateGuideStyles = findAsset('UltimateGuide-', '.css')
 const routeImagePrefixes = {
-  '/artisans': 'crockettstudio-',
+  '/guide-to-lee-county-virginia': 'cgap-',
   '/heritage': 'wilder-',
   '/lodging': 'WolfeGilburt-',
   '/outdoors': 'stone--',
@@ -38,6 +44,14 @@ function getResourceHints(route) {
 
   if (pageRoutesChunk) {
     hints.push(`<link rel="modulepreload" crossorigin href="/assets/${pageRoutesChunk}" />`)
+  }
+
+  if (route === '/guide-to-lee-county-virginia' && ultimateGuideChunk) {
+    hints.push(`<link rel="modulepreload" crossorigin href="/assets/${ultimateGuideChunk}" />`)
+  }
+
+  if (route === '/guide-to-lee-county-virginia' && ultimateGuideStyles) {
+    hints.push(`<link rel="stylesheet" crossorigin href="/assets/${ultimateGuideStyles}" />`)
   }
 
   if (routeImage) {
@@ -89,5 +103,32 @@ await Promise.all(
 
     await mkdir(dirname(routeFile), { recursive: true })
     await writeFile(routeFile, routeHtml)
+  }),
+)
+
+await Promise.all(
+  Object.entries(legacyRedirects).map(async ([legacyRoute, destinationRoute]) => {
+    const routeFile = join(distDir, legacyRoute, 'index.html')
+    const destinationPath = `${destinationRoute}/`
+    const canonicalUrl = `${siteOrigin}${destinationPath}`
+    const redirectHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href="${canonicalUrl}" />
+    <meta http-equiv="refresh" content="0; url=${destinationPath}" />
+    <title>Redirecting to the Lee County Business Directory</title>
+    <script>window.location.replace(${JSON.stringify(destinationPath)} + window.location.search + window.location.hash)</script>
+  </head>
+  <body>
+    <p><a href="${destinationPath}">Continue to the Lee County Business Directory</a></p>
+  </body>
+</html>
+`
+
+    await mkdir(dirname(routeFile), { recursive: true })
+    await writeFile(routeFile, redirectHtml)
   }),
 )

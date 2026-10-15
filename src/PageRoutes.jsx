@@ -31,6 +31,7 @@ import bird from './assets/bird.webp'
 const DineShopPlaces = lazy(() => import('./components/DineShopPlaces'))
 const CalendarPage = lazy(() => import('./components/CalendarPage'))
 const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
+const UltimateGuide = lazy(() => import('./components/UltimateGuide'))
 
 const heritageSections = [
   {
@@ -270,6 +271,18 @@ const pages = [
     sections: visitorInfoSections,
   },
   {
+    path: '/guide-to-lee-county-virginia',
+    title: 'The Ultimate Guide to Lee County, Virginia',
+    description:
+      'Discover things to do, Appalachian history, hiking, scenic views, seasonal trip ideas, and practical tips for planning your Lee County visit.',
+    label: 'Lee County Travel Guide',
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading travel guide…</div>}>
+        <UltimateGuide />
+      </Suspense>
+    ),
+  },
+  {
     path: '/calendar',
     title: 'Lee County, VA Events Calendar',
     description: 'Find upcoming festivals, live music, family activities, outdoor programs, and community events across Lee County, Virginia.',
@@ -352,7 +365,7 @@ const pages = [
     },
   },
   {
-    path: '/dine-shop',
+    path: '/directory',
     title: 'Lee County Business Directory',
     description: 'Browse local restaurants, cafes, shops, lodging, and services across Lee County, Virginia.',
     label: 'Restaurants, Shops & Local Services',

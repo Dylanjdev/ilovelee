@@ -196,6 +196,201 @@
   margin-top: 1.25rem;
 }
 
+.business-submission-modes {
+  display: inline-flex;
+  margin-bottom: 1rem;
+  border: 1px solid var(--line);
+}
+
+.business-submission-modes button {
+  min-height: 42px;
+  padding: 0.62rem 0.85rem;
+  color: #384352;
+  background: #ffffff;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+.business-submission-modes button + button {
+  border-left: 1px solid var(--line);
+}
+
+.business-submission-modes button:hover,
+.business-submission-modes button:focus-visible,
+.business-submission-modes button.active {
+  color: #ffffff;
+  background: var(--brand);
+  outline: none;
+}
+
+.business-csv-panel {
+  padding: clamp(1rem, 3vw, 1.3rem);
+  background: #fafbf9;
+  border: 1px solid var(--line);
+}
+
+.business-csv-heading,
+.business-csv-preview-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.business-csv-heading h3 {
+  margin: 0;
+  color: #1f2530;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+}
+
+.business-csv-heading p,
+.business-csv-columns {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.business-csv-heading p {
+  max-width: 66ch;
+  margin: 0.4rem 0 0;
+}
+
+.business-csv-heading .directory-button {
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.business-csv-columns {
+  margin: 1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.business-csv-columns strong {
+  color: #384352;
+}
+
+.directory-form .business-csv-file-field {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  color: #384352;
+  background: #ffffff;
+  border: 1px dashed #aeb7c1;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.business-csv-file-field small {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.business-csv-errors {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  color: #7a1b28;
+  background: #fff1f2;
+  border: 1px solid #e6b7bd;
+  font-size: 0.86rem;
+}
+
+.business-csv-errors ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.business-csv-errors li + li {
+  margin-top: 0.25rem;
+}
+
+.business-csv-preview {
+  margin-top: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--line);
+}
+
+.business-csv-preview-heading {
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.business-csv-preview-heading > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.business-csv-preview-heading strong {
+  overflow: hidden;
+  color: #252d38;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.business-csv-preview-heading span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.business-csv-preview-heading .business-csv-ready {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.48rem;
+  color: #245733;
+  background: #dceede;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.business-csv-table-wrap {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.business-csv-table-wrap table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.business-csv-table-wrap th,
+.business-csv-table-wrap td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.business-csv-table-wrap th {
+  position: sticky;
+  top: 0;
+  color: #384352;
+  background: #f4f5f3;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.business-csv-table-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.business-csv-table-wrap td > strong,
+.business-csv-table-wrap td > span {
+  display: block;
+}
+
+.business-csv-table-wrap td > span {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
 .directory-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -924,8 +1119,14 @@
   }
 
   .directory-card-heading,
-  .directory-access-denied {
+  .directory-access-denied,
+  .business-csv-heading,
+  .business-csv-preview-heading {
     display: grid;
+  }
+
+  .business-csv-heading .directory-button {
+    width: 100%;
   }
 
   .directory-form input,

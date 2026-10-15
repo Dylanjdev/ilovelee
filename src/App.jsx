@@ -7,11 +7,20 @@ import './components/SectionPage.css'
 const PageRoutes = lazy(() => import('./PageRoutes.jsx'))
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+const legacyRouteRedirects = {
+  '/dine-shop': '/directory',
+  '/dineandshop': '/directory',
+}
 const routeFallbacks = {
   '/visitor-info': {
     label: 'Plan Your Visit',
     title: 'Lee County, VA Visitor Information',
     description: 'Maps, directions, local highlights, and practical answers for planning a visit to Lee County, Virginia.',
+  },
+  '/guide-to-lee-county-virginia': {
+    label: 'Lee County Travel Guide',
+    title: 'The Ultimate Guide to Lee County, Virginia',
+    description: 'Things to do, Appalachian history, hiking, scenic views, and practical trip-planning advice.',
   },
   '/calendar': {
     label: 'Lee County Events',
@@ -33,7 +42,7 @@ const routeFallbacks = {
     title: 'Map',
     description: 'Navigate Lee County, towns, parks, attractions, and scenic stops with a county-wide map view.',
   },
-  '/dine-shop': {
+  '/directory': {
     label: 'Restaurants, Shops & Local Services',
     title: 'Lee County Business Directory',
     description: 'Browse approved Lee County restaurants, cafes, shops, lodging, and local services.',
@@ -91,13 +100,21 @@ function normalizePath(path) {
   return path.replace(/\/+$/, '') || '/'
 }
 
-function getCurrentPath() {
+function getBrowserPath() {
   const pathname = window.location.pathname
   const withoutBase = basePath && pathname.startsWith(basePath)
     ? pathname.slice(basePath.length)
     : pathname
 
   return normalizePath(withoutBase)
+}
+
+function resolvePath(path) {
+  return legacyRouteRedirects[path] ?? path
+}
+
+function getCurrentPath() {
+  return resolvePath(getBrowserPath())
 }
 
 function toHref(path) {
@@ -119,10 +136,25 @@ function App() {
   }
 
   useEffect(() => {
-    const handlePopState = () => setPathname(getCurrentPath())
+    const syncPath = () => {
+      const browserPath = getBrowserPath()
+      const resolvedPath = resolvePath(browserPath)
 
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+      if (resolvedPath !== browserPath) {
+        window.history.replaceState(
+          {},
+          '',
+          `${toHref(resolvedPath)}${window.location.search}${window.location.hash}`,
+        )
+      }
+
+      setPathname(resolvedPath)
+    }
+
+    syncPath()
+
+    window.addEventListener('popstate', syncPath)
+    return () => window.removeEventListener('popstate', syncPath)
   }, [])
 
   useEffect(() => {
