@@ -9,6 +9,11 @@ export const pageMetadata = {
     description:
       'Find Lee County, Virginia visitor information, directions, maps, trip-planning tips, and answers about Jonesville, Cumberland Gap, and the surrounding region.',
   },
+  '/community-assistance-lee-county-va': {
+    title: 'Lee County VA Assistance Directory | Food, Housing & Bills',
+    description:
+      'Find help in Lee County, VA, including food banks, domestic violence support, rent and utility assistance, housing, clothing, SNAP, Medicaid and family services.',
+  },
   '/guide-to-lee-county-virginia': {
     title: 'Ultimate Guide to Lee County, VA | Things to Do & See',
     description:
@@ -52,7 +57,7 @@ export const pageMetadata = {
   '/towns': {
     title: 'Jonesville, VA & Lee County Towns | I Love Lee',
     description:
-      'Explore Jonesville, VA, the historic Lee County seat, plus Pennington Gap and the welcoming mountain communities of Lee County, Virginia.',
+      'Explore Jonesville, Pennington Gap, St. Charles, Dryden, Ewing, Keokee, Rose Hill, Stickleyville, and other Lee County, Virginia communities.',
   },
   '/weddings': {
     title: 'Lee County, VA Wedding Venues | I Love Lee',

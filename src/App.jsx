@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Layout from './components/Layout'
 import Home from './components/Home'
 import { pageMetadata } from './pageMetadata'
+import { serializeStructuredData, STRUCTURED_DATA_SCRIPT_ID } from './structuredData'
 import './components/SectionPage.css'
 
 const PageRoutes = lazy(() => import('./PageRoutes.jsx'))
@@ -21,6 +22,11 @@ const routeFallbacks = {
     label: 'Lee County Travel Guide',
     title: 'The Ultimate Guide to Lee County, Virginia',
     description: 'Things to do, Appalachian history, hiking, scenic views, and practical trip-planning advice.',
+  },
+  '/community-assistance-lee-county-va': {
+    label: 'Food, Housing, Bills & Family Services',
+    title: 'Lee County, VA Community Assistance Directory',
+    description: 'Local resources for food, housing, bills, healthcare, public benefits, safety, and family support.',
   },
   '/calendar': {
     label: 'Lee County Events',
@@ -173,6 +179,16 @@ function App() {
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.description)
     document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.title)
     document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.description)
+
+    let structuredDataScript = document.getElementById(STRUCTURED_DATA_SCRIPT_ID)
+    if (!structuredDataScript) {
+      structuredDataScript = document.createElement('script')
+      structuredDataScript.id = STRUCTURED_DATA_SCRIPT_ID
+      structuredDataScript.type = 'application/ld+json'
+      document.head.appendChild(structuredDataScript)
+    }
+    structuredDataScript.textContent = serializeStructuredData(pathname)
+
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
     if (hasNavigated.current) {

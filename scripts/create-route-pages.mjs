@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { pageMetadata } from '../src/pageMetadata.js'
+import { serializeStructuredData } from '../src/structuredData.js'
 
 const routes = Object.keys(pageMetadata).filter((route) => route !== '/')
 
@@ -20,6 +21,8 @@ const findAsset = (prefix, extension) =>
 const pageRoutesChunk = findAsset('PageRoutes-', '.js')
 const ultimateGuideChunk = findAsset('UltimateGuide-', '.js')
 const ultimateGuideStyles = findAsset('UltimateGuide-', '.css')
+const communityAssistanceChunk = findAsset('CommunityAssistance-', '.js')
+const communityAssistanceStyles = findAsset('CommunityAssistance-', '.css')
 const routeImagePrefixes = {
   '/guide-to-lee-county-virginia': 'cgap-',
   '/heritage': 'wilder-',
@@ -35,6 +38,17 @@ const escapeHtml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
+
+function injectStructuredData(html, route) {
+  const structuredDataScript = `<script type="application/ld+json" id="site-structured-data">${serializeStructuredData(route)}</script>`
+  const scriptPattern = /<script type="application\/ld\+json" id="site-structured-data">[\s\S]*?<\/script>/
+
+  if (!scriptPattern.test(html)) {
+    throw new Error('The site structured-data script was not found in the built app shell.')
+  }
+
+  return html.replace(scriptPattern, structuredDataScript)
+}
 
 function getResourceHints(route) {
   const hints = []
@@ -54,12 +68,22 @@ function getResourceHints(route) {
     hints.push(`<link rel="stylesheet" crossorigin href="/assets/${ultimateGuideStyles}" />`)
   }
 
+  if (route === '/community-assistance-lee-county-va' && communityAssistanceChunk) {
+    hints.push(`<link rel="modulepreload" crossorigin href="/assets/${communityAssistanceChunk}" />`)
+  }
+
+  if (route === '/community-assistance-lee-county-va' && communityAssistanceStyles) {
+    hints.push(`<link rel="stylesheet" crossorigin href="/assets/${communityAssistanceStyles}" />`)
+  }
+
   if (routeImage) {
     hints.push(`<link rel="preload" as="image" type="image/webp" href="/assets/${routeImage}" fetchpriority="high" />`)
   }
 
   return hints.length ? `    ${hints.join('\n    ')}\n` : ''
 }
+
+await writeFile(appShell, injectStructuredData(appShellHtml, '/'))
 
 await Promise.all(
   routes.map(async (route) => {
@@ -68,7 +92,7 @@ await Promise.all(
     const metadata = pageMetadata[route]
     const title = escapeHtml(metadata.title)
     const description = escapeHtml(metadata.description)
-    const routeHtml = appShellHtml
+    const routeHtml = injectStructuredData(appShellHtml, route)
       .replace(/\s*<link rel="preload" as="image"[^>]*>/, '')
       .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
       .replace(

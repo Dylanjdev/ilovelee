@@ -9,6 +9,7 @@ function SectionPage({
   sections = [],
   mapEmbed,
   content,
+  afterContent,
 }) {
   const hasFeatures = features.length > 0
   const hasSections = sections.length > 0
@@ -55,7 +56,7 @@ function SectionPage({
                 <div className="feature-media-frame">
                   {feature.video ? (
                     <video
-                      className="feature-media"
+                      className={`feature-media${feature.imageFit === 'contain' ? ' feature-media-contain' : ''}`}
                       src={feature.video}
                       aria-label={feature.videoLabel ?? feature.imageAlt}
                       muted
@@ -64,7 +65,7 @@ function SectionPage({
                     />
                   ) : (
                     <img
-                      className="feature-media"
+                      className={`feature-media${feature.imageFit === 'contain' ? ' feature-media-contain' : ''}`}
                       src={feature.image}
                       alt={feature.imageAlt ?? `${feature.title} in Lee County, Virginia`}
                       width={feature.imageWidth}
@@ -103,6 +104,8 @@ function SectionPage({
             ))}
           </div>
         )}
+
+        {afterContent}
 
         {hasSections && (
           <div className="heritage-story">

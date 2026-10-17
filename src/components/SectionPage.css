@@ -91,10 +91,21 @@
   transition: transform 0.65s var(--ease-spring), filter 0.35s ease;
 }
 
+.feature-media.feature-media-contain {
+  padding: clamp(0.7rem, 2vw, 1.1rem);
+  object-fit: contain;
+  background: #2c2927;
+}
+
 .feature-card:hover .feature-media,
 .feature-card:focus-within .feature-media {
   filter: saturate(1.06) contrast(1.03);
   transform: scale(1.045);
+}
+
+.feature-card:hover .feature-media-contain,
+.feature-card:focus-within .feature-media-contain {
+  transform: scale(1.02);
 }
 
 .feature-credit {

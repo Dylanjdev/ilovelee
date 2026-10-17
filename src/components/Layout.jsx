@@ -5,6 +5,7 @@ const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/visitor-info', label: 'Visitor Info' },
   { to: '/guide-to-lee-county-virginia', label: 'Guide' },
+  { to: '/community-assistance-lee-county-va', label: 'Community Help' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/artisans', label: 'Artisans' },
   { to: '/heritage', label: 'Heritage' },
@@ -112,6 +113,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
               <a href={toHref('/lodging')} onClick={(event) => handleInternalClick(event, '/lodging')}>Lodging</a>
               <a href={toHref('/outdoors')} onClick={(event) => handleInternalClick(event, '/outdoors')}>Outdoors</a>
               <a href={toHref('/directory')} onClick={(event) => handleInternalClick(event, '/directory')}>Directory</a>
+              <a href={toHref('/community-assistance-lee-county-va')} onClick={(event) => handleInternalClick(event, '/community-assistance-lee-county-va')}>Community Help</a>
             </nav>
             <div className="footer-column footer-social">
               <p className="footer-heading">Connect</p>

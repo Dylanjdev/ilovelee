@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import SectionPage from './components/SectionPage'
+import TownCommunities from './components/TownCommunities'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
 import whiteRocks from './assets/whiterock.webp'
@@ -32,6 +33,7 @@ const DineShopPlaces = lazy(() => import('./components/DineShopPlaces'))
 const CalendarPage = lazy(() => import('./components/CalendarPage'))
 const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
 const UltimateGuide = lazy(() => import('./components/UltimateGuide'))
+const CommunityAssistance = lazy(() => import('./components/CommunityAssistance'))
 
 const heritageSections = [
   {
@@ -269,6 +271,20 @@ const pages = [
       linkLabel: 'Get directions to Lee County, VA',
     },
     sections: visitorInfoSections,
+  },
+  {
+    path: '/community-assistance-lee-county-va',
+    title: 'Lee County, VA Community Assistance Directory',
+    description:
+      'Find local help with food, housing, utility bills, domestic violence support, healthcare, public benefits, clothing, and family services.',
+    label: 'Food, Housing, Bills & Family Services',
+    intro:
+      'Everyone needs a helping hand sometimes. Whether you are struggling to afford groceries, facing an electric bill, looking for affordable housing, leaving an unsafe situation, or trying to find resources for your family, help may be available right here in Lee County, Virginia.',
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading community assistance directory…</div>}>
+        <CommunityAssistance />
+      </Suspense>
+    ),
   },
   {
     path: '/guide-to-lee-county-virginia',
@@ -710,8 +726,9 @@ const pages = [
   {
     path: '/towns',
     title: 'Jonesville, VA & Lee County Towns',
-    description: 'Explore Jonesville, Pennington Gap, and the mountain communities that shape the character of Lee County, Virginia.',
+    description: 'Explore Jonesville, Pennington Gap, St. Charles, and the mountain communities that shape the character of Lee County, Virginia.',
     label: 'Lee County Communities',
+    afterContent: <TownCommunities />,
     features: [
       {
         title: 'Town of Jonesville',
@@ -725,6 +742,7 @@ const pages = [
         description:
           'Jonesville is Lee County’s historic county seat, founded in the late 1700s and set among the mountains of Southwest Virginia. Known today as a small town with a generous community spirit, Jonesville blends courthouse-town history, local commerce, and seasonal Main Street color, including the summer Festival of Flowers display.',
         address: '842 Park Street, Jonesville, VA 24263',
+        note: 'Incorporated town · Lee County seat',
         phone: '276-346-1151',
         email: 'office@townofjonesville.org',
         links: [
@@ -745,6 +763,7 @@ const pages = [
         },
         description:
           'Pennington Gap is a welcoming Lee County town with community projects, outdoor recreation access, and a strong connection to local music and events. The town is home to the long-running Tobacco Festival, an official stop on The Crooked Road, along with ongoing work around Lee Theatre, Leeman Field, the Greenway, ATV access, and visitor amenities.',
+        note: 'Incorporated town',
         phone: '276-546-1177',
         email: 'Clerk@TownOfPenningtonVA.gov',
         links: [
@@ -755,6 +774,101 @@ const pages = [
           {
             label: 'Tobacco Festival',
             href: 'http://tobaccofestival.org/',
+          },
+        ],
+      },
+      {
+        title: 'St. Charles',
+        location: 'Northern Lee County',
+        image: coalHeritage,
+        imageAlt: 'Coal miners memorial plaque honoring the St. Charles coal fields',
+        imageFit: 'contain',
+        description:
+          'St. Charles is a historic coal community in northern Lee County. Incorporated in 1914, its town status ended in 2022; current Census geography identifies St. Charles as a census-designated place.',
+        note: 'Census-designated place · Former incorporated town',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F010n23',
+          },
+          {
+            label: 'View Virginia status record',
+            href: 'https://law.lis.virginia.gov/uncodifiedactssub/2022/session1/chapter90/',
+          },
+        ],
+      },
+      {
+        title: 'Dryden',
+        location: 'Eastern Lee County',
+        image: wolfeGilbertHouse,
+        imageAlt: 'Historic Wolfe-Gilbert House in Dryden, Virginia',
+        description:
+          'Dryden sits along the Powell Valley corridor in eastern Lee County, northeast of Pennington Gap and on the route toward Big Stone Gap. The community’s landscape reflects the county’s railroad, farming, and mountain heritage.',
+        note: 'Census-designated place',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F010n01',
+          },
+        ],
+      },
+      {
+        title: 'Ewing',
+        location: 'Western Lee County',
+        image: wildernessRoad,
+        imageAlt: 'Wilderness Road landscape near Ewing, Virginia',
+        description:
+          'Ewing is a western Lee County community near Wilderness Road State Park and the Cumberland Gap region. It is a natural starting point for frontier history, trails, mountain scenery, and trips toward White Rocks and Sand Cave.',
+        note: 'Census-designated place',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F010n0d',
+          },
+        ],
+      },
+      {
+        title: 'Keokee',
+        location: 'Northeastern Lee County',
+        image: lakeKeokee,
+        imageAlt: 'Lake Keokee surrounded by forest near Keokee, Virginia',
+        description:
+          'Keokee is a mountain community in northeastern Lee County. Nearby Lake Keokee offers a quiet setting for hiking, paddling, fishing, picnicking, and wildlife watching in the surrounding National Forest landscape.',
+        note: 'Census-designated place',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F010n12',
+          },
+        ],
+      },
+      {
+        title: 'Rose Hill',
+        location: 'Western Lee County',
+        image: whiteRocks,
+        imageAlt: 'White Rocks rising above Powell Valley near Rose Hill, Virginia',
+        description:
+          'Rose Hill lies in western Lee County near Powell Valley, Cumberland Gap, and the dramatic White Rocks landmark. The community is surrounded by some of the county’s most recognizable mountain scenery.',
+        note: 'Census-designated place',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F011tbp',
+          },
+        ],
+      },
+      {
+        title: 'Stickleyville',
+        location: 'Eastern Lee County',
+        image: powellRiver,
+        imageAlt: 'Mountain and river landscape in Lee County, Virginia',
+        description:
+          'Stickleyville is an eastern Lee County community in the valley country between Powell Mountain and Wallen Ridge. The nearby Powell Mountain Overlook opens onto broad views of Powell Valley and the surrounding mountains.',
+        note: 'Census-designated place',
+        links: [
+          {
+            label: 'View place details',
+            href: 'https://www.google.com/search?kgmid=%2Fm%2F04c0jvb',
           },
         ],
       },
