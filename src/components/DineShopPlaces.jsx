@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BUSINESS_CSV_HEADERS, parseBusinessCsv } from '../lib/businessCsv'
+import { assignBusinessSlugs, businessPath, googleMapsBusinessUrl } from '../lib/businessDirectory'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import './DineShopPlaces.css'
 
@@ -108,12 +109,6 @@ function createLogoPath(businessId, file) {
 function businessLogoUrl(logoPath) {
   if (!logoPath || !supabase) return null
   return supabase.storage.from(logoBucket).getPublicUrl(logoPath).data.publicUrl
-}
-
-function googleMapsUrl(business) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${business.name}, ${business.address}`,
-  )}`
 }
 
 function submissionContact(business) {
@@ -1103,6 +1098,8 @@ function DirectoryAdminPanel({
 function PublicBusinessCard({ business }) {
   const websiteUrl = safeWebsiteUrl(business.website_url)
   const logoUrl = businessLogoUrl(business.logo_path)
+  const detailsPath = businessPath(business)
+  const mapsUrl = googleMapsBusinessUrl(business)
 
   return (
     <article className="place-card">
@@ -1113,11 +1110,11 @@ function PublicBusinessCard({ business }) {
       )}
       <div>
         <p className="place-category">{categoryLabel(business.category)}</p>
-        <h2>{business.name}</h2>
+        <h2><a className="place-title-link" href={`${detailsPath}/`}>{business.name}</a></h2>
         {business.description && <p>{business.description}</p>}
         <a
           className="place-address-link"
-          href={googleMapsUrl(business)}
+          href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -1135,14 +1132,12 @@ function PublicBusinessCard({ business }) {
           <a href={websiteUrl} target="_blank" rel="noopener noreferrer">Website</a>
         )}
       </div>
-      <a
-        className="place-map-link"
-        href={googleMapsUrl(business)}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View on Google Maps
-      </a>
+      <div className="place-card-actions">
+        <a className="place-details-link" href={`${detailsPath}/`}>View business details</a>
+        <a className="place-map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer">
+          Map
+        </a>
+      </div>
     </article>
   )
 }
@@ -1182,7 +1177,7 @@ function DineShopPlaces() {
       setBusinesses([])
       setLoadError(error.message)
     } else {
-      setBusinesses(data ?? [])
+      setBusinesses(assignBusinessSlugs(data ?? []))
     }
     setLoading(false)
   }, [])

@@ -915,6 +915,18 @@
   overflow-wrap: anywhere;
 }
 
+.place-title-link {
+  color: inherit;
+  text-decoration-color: rgba(143, 29, 44, 0.34);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.place-title-link:hover,
+.place-title-link:focus-visible {
+  color: var(--brand);
+}
+
 .place-logo-frame {
   display: flex;
   min-height: 112px;
@@ -985,6 +997,13 @@
   border-color: var(--brand);
 }
 
+.place-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.place-details-link,
 .place-map-link {
   display: inline-flex;
   width: fit-content;
@@ -999,8 +1018,23 @@
   text-decoration: none;
 }
 
+.place-details-link {
+  color: #ffffff;
+  background: var(--brand);
+  border: 1px solid var(--brand);
+}
+
+.place-map-link {
+  color: var(--brand);
+  background: #ffffff;
+  border: 1px solid var(--brand);
+}
+
+.place-details-link:hover,
+.place-details-link:focus-visible,
 .place-map-link:hover,
 .place-map-link:focus-visible {
+  color: #ffffff;
   background: var(--brand-dark);
 }
 
@@ -1190,7 +1224,7 @@
   }
 
   .place-meta,
-  .place-map-link {
+  .place-card-actions {
     width: 100%;
   }
 
@@ -1200,6 +1234,7 @@
   }
 
   .place-meta a,
+  .place-details-link,
   .place-map-link {
     display: flex;
     width: 100%;

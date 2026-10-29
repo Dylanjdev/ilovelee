@@ -1,4 +1,12 @@
 import { pageMetadata } from './pageMetadata.js'
+import {
+  businessCanonicalUrl,
+  businessCategoryLabel,
+  businessPageMetadata,
+  businessPath,
+  googleMapsBusinessUrl,
+  parseBusinessAddress,
+} from './lib/businessDirectory.js'
 
 export const STRUCTURED_DATA_SCRIPT_ID = 'site-structured-data'
 
@@ -44,10 +52,10 @@ export function canonicalUrlForPath(pathname) {
   return normalizedPath === '/' ? homeUrl : `${siteOrigin}${normalizedPath}/`
 }
 
-export function createStructuredData(pathname) {
+export function createStructuredData(pathname, metadataOverride) {
   const normalizedPath = normalizePath(pathname)
   const canonicalUrl = canonicalUrlForPath(normalizedPath)
-  const metadata = pageMetadata[normalizedPath] ?? {
+  const metadata = metadataOverride ?? pageMetadata[normalizedPath] ?? {
     title: 'Page Not Found | I Love Lee',
     description: 'Return home to keep exploring Lee County, Virginia.',
   }
@@ -196,6 +204,82 @@ export function createStructuredData(pathname) {
   }
 }
 
-export function serializeStructuredData(pathname) {
-  return JSON.stringify(createStructuredData(pathname)).replaceAll('<', '\\u003c')
+export function serializeStructuredData(pathname, metadataOverride) {
+  return JSON.stringify(createStructuredData(pathname, metadataOverride)).replaceAll('<', '\\u003c')
+}
+
+const businessSchemaTypes = {
+  restaurants: 'Restaurant',
+  shops: 'Store',
+  groceries: 'GroceryStore',
+  lodging: 'LodgingBusiness',
+  services: 'ProfessionalService',
+  other: 'LocalBusiness',
+}
+
+export function createBusinessStructuredData(business) {
+  const metadata = businessPageMetadata(business)
+  const path = businessPath(business)
+  const canonicalUrl = businessCanonicalUrl(business)
+  const data = createStructuredData(path, metadata)
+  const webPage = data['@graph'].find((node) => node['@id'] === `${canonicalUrl}#webpage`)
+  const breadcrumb = data['@graph'].find((node) => node['@type'] === 'BreadcrumbList')
+  const businessId = `${canonicalUrl}#business`
+  const localBusiness = {
+    '@type': businessSchemaTypes[business.category] ?? 'LocalBusiness',
+    '@id': businessId,
+    name: business.name,
+    description: business.description || metadata.description,
+    url: canonicalUrl,
+    category: businessCategoryLabel(business.category),
+    address: {
+      '@type': 'PostalAddress',
+      ...parseBusinessAddress(business.address),
+    },
+    telephone: business.phone || undefined,
+    email: business.business_email || undefined,
+    image: business.logo_url || undefined,
+    hasMap: googleMapsBusinessUrl(business),
+    areaServed: {
+      '@type': 'AdministrativeArea',
+      name: 'Lee County, Virginia',
+    },
+  }
+
+  if (business.website_url) {
+    localBusiness.sameAs = [business.website_url]
+  }
+
+  webPage.mainEntity = { '@id': businessId }
+  if (business.updated_at) {
+    webPage.dateModified = String(business.updated_at).slice(0, 10)
+  }
+
+  breadcrumb.itemListElement = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: homeUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Business Directory',
+      item: `${siteOrigin}/directory/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: business.name,
+      item: canonicalUrl,
+    },
+  ]
+
+  data['@graph'].push(localBusiness)
+  return data
+}
+
+export function serializeBusinessStructuredData(business) {
+  return JSON.stringify(createBusinessStructuredData(business)).replaceAll('<', '\\u003c')
 }

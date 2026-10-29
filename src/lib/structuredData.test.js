@@ -3,7 +3,9 @@ import test from 'node:test'
 import { pageMetadata } from '../pageMetadata.js'
 import {
   canonicalUrlForPath,
+  createBusinessStructuredData,
   createStructuredData,
+  serializeBusinessStructuredData,
   serializeStructuredData,
 } from '../structuredData.js'
 
@@ -58,4 +60,30 @@ test('community assistance page exposes its categories as the main entity', () =
   assert.equal(page.mainEntity['@id'], categories['@id'])
   assert.equal(categories.numberOfItems, 10)
   assert.equal(categories.itemListElement[0].url, 'https://discoverleeva.com/community-assistance-lee-county-va/#food-assistance')
+})
+
+test('business pages include local business schema and three-level breadcrumbs', () => {
+  const business = {
+    id: 'business-1',
+    slug: 'bbs-bakery-and-cafe-pennington-gap',
+    name: "BB's Bakery & Cafe",
+    category: 'restaurants',
+    description: 'Fresh baked goods and cafe favorites.',
+    address: '123 Main Street, Pennington Gap, VA 24277',
+    phone: '276-555-0100',
+    website_url: 'https://example.com/',
+    updated_at: '2026-10-29T12:00:00Z',
+  }
+  const data = createBusinessStructuredData(business)
+  const page = nodeByType(data, 'WebPage')
+  const localBusiness = nodeByType(data, 'Restaurant')
+  const breadcrumb = nodeByType(data, 'BreadcrumbList')
+
+  assert.equal(page.url, 'https://discoverleeva.com/directory/bbs-bakery-and-cafe-pennington-gap/')
+  assert.equal(page.mainEntity['@id'], localBusiness['@id'])
+  assert.equal(page.dateModified, '2026-10-29')
+  assert.equal(localBusiness.address.addressLocality, 'Pennington Gap')
+  assert.equal(localBusiness.hasMap.startsWith('https://www.google.com/maps/search/'), true)
+  assert.equal(breadcrumb.itemListElement.length, 3)
+  assert.equal(JSON.parse(serializeBusinessStructuredData(business))['@graph'].length > 0, true)
 })

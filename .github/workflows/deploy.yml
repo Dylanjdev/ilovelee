@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Refresh approved business pages and the sitemap every morning.
+    - cron: '17 11 * * *'
 
 permissions:
   contents: read

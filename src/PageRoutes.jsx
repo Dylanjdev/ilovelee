@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import SectionPage from './components/SectionPage'
 import TownCommunities from './components/TownCommunities'
+import { businessSlugFromPath } from './lib/businessDirectory'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
 import whiteRocks from './assets/whiterock.webp'
@@ -34,6 +35,7 @@ const CalendarPage = lazy(() => import('./components/CalendarPage'))
 const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
 const UltimateGuide = lazy(() => import('./components/UltimateGuide'))
 const CommunityAssistance = lazy(() => import('./components/CommunityAssistance'))
+const BusinessDetailPage = lazy(() => import('./components/BusinessDetailPage'))
 
 const heritageSections = [
   {
@@ -921,6 +923,16 @@ const pages = [
 ]
 
 function PageRoutes({ pathname }) {
+  const businessSlug = businessSlugFromPath(pathname)
+
+  if (businessSlug) {
+    return (
+      <Suspense fallback={<div className="route-loading" role="status">Loading business details…</div>}>
+        <BusinessDetailPage key={businessSlug} slug={businessSlug} />
+      </Suspense>
+    )
+  }
+
   const page = pages.find((item) => item.path === pathname)
 
   if (!page) {

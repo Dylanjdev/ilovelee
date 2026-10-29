@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Layout from './components/Layout'
 import Home from './components/Home'
 import { pageMetadata } from './pageMetadata'
+import { businessSlugFromPath } from './lib/businessDirectory'
 import { serializeStructuredData, STRUCTURED_DATA_SCRIPT_ID } from './structuredData'
 import './components/SectionPage.css'
 
@@ -76,11 +77,15 @@ const routeFallbacks = {
 }
 
 function RouteFallback({ pathname }) {
-  const route = routeFallbacks[pathname] ?? {
+  const route = routeFallbacks[pathname] ?? (businessSlugFromPath(pathname) ? {
+    label: 'Lee County Business Directory',
+    title: 'Loading Business Listing',
+    description: 'Loading address, contact information, directions, and other listing details.',
+  } : {
     label: 'I Love Lee',
     title: 'Page Not Found',
     description: 'Return home to keep exploring Lee County.',
-  }
+  })
 
   return (
     <div className="section-page" aria-busy="true">
@@ -166,19 +171,30 @@ function App() {
   useEffect(() => {
     const canonicalPath = pathname === '/' ? '/' : `${pathname}/`
     const canonicalUrl = new URL(canonicalPath, 'https://discoverleeva.com').href
-    const metadata = pageMetadata[pathname] ?? {
+    const isBusinessDetail = Boolean(businessSlugFromPath(pathname))
+    const metadata = pageMetadata[pathname] ?? (isBusinessDetail ? {
+      title: 'Lee County, VA Business | I Love Lee Directory',
+      description: 'Find address, contact information, directions, and more for this Lee County, Virginia business.',
+    } : {
       title: 'Page Not Found | I Love Lee',
       description: 'Return home to keep exploring Lee County, Virginia.',
-    }
+    })
 
     document.title = metadata.title
     document.querySelector('meta[name="description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[name="robots"]')?.setAttribute(
+      'content',
+      pathname === '/' || pageMetadata[pathname] || isBusinessDetail ? 'index, follow' : 'noindex, follow',
+    )
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
+    document.querySelector('meta[property="og:type"]')?.setAttribute('content', 'website')
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalUrl)
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', metadata.title)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://discoverleeva.com/ilovelee.webp')
     document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.title)
     document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', 'https://discoverleeva.com/ilovelee.webp')
 
     let structuredDataScript = document.getElementById(STRUCTURED_DATA_SCRIPT_ID)
     if (!structuredDataScript) {
@@ -187,7 +203,7 @@ function App() {
       structuredDataScript.type = 'application/ld+json'
       document.head.appendChild(structuredDataScript)
     }
-    structuredDataScript.textContent = serializeStructuredData(pathname)
+    structuredDataScript.textContent = serializeStructuredData(pathname, metadata)
 
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 

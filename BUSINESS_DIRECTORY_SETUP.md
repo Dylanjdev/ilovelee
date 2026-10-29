@@ -49,6 +49,10 @@ Restart the Vite server after changing environment variables.
 
 Approved records appear in the public directory immediately. Rejected and pending records remain visible only to administrators. Submitters can include an optional logo, and administrators can upload, replace, or remove it while editing a listing. Deleting a listing also removes its private submission contact record and attempts to remove its stored logo.
 
+Each approved record also receives a dedicated, search-friendly URL under `/directory/`, using its business name and community (for example, `/directory/bbs-bakery-and-cafe-pennington-gap/`). Directory cards link to these pages. During every production build, the site creates crawlable HTML, unique title and description tags, LocalBusiness structured data, canonical tags, and sitemap entries for all approved listings. The GitHub Pages workflow runs each morning as well as after code changes, so newly approved businesses are added to the static site and sitemap automatically.
+
+The production build requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. The repository workflow supplies them to the build; local builds load the same values from `.env`. If those values are absent, the main site still builds, but dedicated business HTML files cannot be generated.
+
 Visitors can submit one listing at a time or download the CSV template and upload up to 100 businesses together. Bulk submissions share one private submitter contact and do not include logos; an administrator can add logos while reviewing the imported listings.
 
 ## Production spam protection
