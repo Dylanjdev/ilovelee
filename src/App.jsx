@@ -141,7 +141,7 @@ function getCurrentPath() {
 function toHref(path) {
   const normalizedPath = normalizePath(path)
 
-  return `${basePath}${normalizedPath === '/' ? '/' : normalizedPath}`
+  return `${basePath}${normalizedPath === '/' ? '/' : `${normalizedPath}/`}`
 }
 
 function App() {
