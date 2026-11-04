@@ -17,6 +17,7 @@ const websiteId = `${homeUrl}#website`
 const destinationId = `${homeUrl}#lee-county`
 
 const collectionPages = new Set([
+  '/articles',
   '/calendar',
   '/artisans',
   '/community-assistance-lee-county-va',
@@ -28,6 +29,8 @@ const collectionPages = new Set([
 ])
 
 const breadcrumbNames = {
+  '/articles': 'Travel Stories',
+  '/articles/appalachian-mountain-road-trip': 'Appalachian Mountain Road Trip',
   '/visitor-info': 'Visitor Information',
   '/guide-to-lee-county-virginia': 'Ultimate Guide to Lee County',
   '/community-assistance-lee-county-va': 'Community Assistance Directory',
@@ -142,6 +145,30 @@ export function createStructuredData(pathname, metadataOverride) {
   }
 
   const graph = [organization, website, destination, webPage]
+
+  if (metadata.article) {
+    const articleId = `${canonicalUrl}#article`
+
+    webPage.mainEntity = { '@id': articleId }
+    graph.push({
+      '@type': 'Article',
+      '@id': articleId,
+      headline: metadata.article.headline,
+      description: metadata.description,
+      image: metadata.imageUrl,
+      datePublished: metadata.article.datePublished,
+      dateModified: metadata.article.dateModified,
+      author: {
+        '@type': 'Organization',
+        '@id': organizationId,
+        name: metadata.article.author,
+      },
+      publisher: { '@id': organizationId },
+      mainEntityOfPage: { '@id': pageId },
+      about: { '@id': destinationId },
+      inLanguage: 'en-US',
+    })
+  }
 
   if (normalizedPath === '/community-assistance-lee-county-va') {
     const assistanceSectionsId = `${canonicalUrl}#assistance-categories`

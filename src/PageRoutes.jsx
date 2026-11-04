@@ -36,6 +36,8 @@ const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
 const UltimateGuide = lazy(() => import('./components/UltimateGuide'))
 const CommunityAssistance = lazy(() => import('./components/CommunityAssistance'))
 const BusinessDetailPage = lazy(() => import('./components/BusinessDetailPage'))
+const ArticlesIndex = lazy(() => import('./components/ArticlesIndex'))
+const ArticlePage = lazy(() => import('./components/ArticlePage'))
 
 const heritageSections = [
   {
@@ -259,6 +261,17 @@ const visitorInfoSections = [
 ]
 
 const pages = [
+  {
+    path: '/articles',
+    title: 'Travel Stories & Trip Ideas',
+    description: 'Practical guides for scenic drives, outdoor adventures, local history, and planning time in Lee County and the Cumberland Gap region.',
+    label: 'Discover Lee Journal',
+    content: (
+      <Suspense fallback={<div className="route-loading" role="status">Loading travel stories…</div>}>
+        <ArticlesIndex />
+      </Suspense>
+    ),
+  },
   {
     path: '/visitor-info',
     title: 'Lee County, VA Visitor Information',
@@ -929,6 +942,14 @@ function PageRoutes({ pathname }) {
     return (
       <Suspense fallback={<div className="route-loading" role="status">Loading business details…</div>}>
         <BusinessDetailPage key={businessSlug} slug={businessSlug} />
+      </Suspense>
+    )
+  }
+
+  if (pathname === '/articles/appalachian-mountain-road-trip') {
+    return (
+      <Suspense fallback={<div className="route-loading" role="status">Loading article…</div>}>
+        <ArticlePage />
       </Suspense>
     )
   }

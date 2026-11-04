@@ -5,6 +5,7 @@ const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/visitor-info', label: 'Visitor Info' },
   { to: '/guide-to-lee-county-virginia', label: 'Guide' },
+  { to: '/articles', label: 'Stories' },
   { to: '/community-assistance-lee-county-va', label: 'Community Help' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/artisans', label: 'Artisans' },
@@ -109,6 +110,7 @@ function Layout({ children, currentPath, navigate, toHref }) {
               <p className="footer-heading">Explore</p>
               <a href={toHref('/visitor-info')} onClick={(event) => handleInternalClick(event, '/visitor-info')}>Visitor Info</a>
               <a href={toHref('/guide-to-lee-county-virginia')} onClick={(event) => handleInternalClick(event, '/guide-to-lee-county-virginia')}>Travel Guide</a>
+              <a href={toHref('/articles')} onClick={(event) => handleInternalClick(event, '/articles')}>Travel Stories</a>
               <a href={toHref('/map')} onClick={(event) => handleInternalClick(event, '/map')}>Map</a>
               <a href={toHref('/lodging')} onClick={(event) => handleInternalClick(event, '/lodging')}>Lodging</a>
               <a href={toHref('/outdoors')} onClick={(event) => handleInternalClick(event, '/outdoors')}>Outdoors</a>

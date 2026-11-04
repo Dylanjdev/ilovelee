@@ -19,6 +19,25 @@ export const pageMetadata = {
     description:
       'Plan a Lee County, Virginia trip with this guide to Cumberland Gap, Appalachian history, hiking, scenic views, local culture, seasons, and weekend itineraries.',
   },
+  '/articles': {
+    title: 'Lee County Travel Stories & Trip Ideas | Discover Lee',
+    description:
+      'Read practical Lee County and Cumberland Gap travel stories, scenic-drive guides, itineraries, outdoor tips, and local trip-planning ideas.',
+  },
+  '/articles/appalachian-mountain-road-trip': {
+    title: 'Appalachian Mountain Road Trip & Cumberland Gap Guide',
+    description:
+      'Plan an Appalachian mountain road trip with scenic route comparisons, realistic drive times, a four-day Cumberland Gap itinerary, and mountain-road tips.',
+    ogType: 'article',
+    imageUrl:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1793774794323_Mountain-ridges-viewed-from-Cumberland-Gap.jpeg',
+    article: {
+      headline: 'Appalachian Mountain Road Trip: Routes, Timing and a Cumberland Gap Basecamp',
+      datePublished: '2026-11-04',
+      dateModified: '2026-11-04',
+      author: 'Discover Lee',
+    },
+  },
   '/calendar': {
     title: 'Lee County, VA Events | Festivals & Community Calendar',
     description:

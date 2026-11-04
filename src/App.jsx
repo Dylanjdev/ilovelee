@@ -24,6 +24,16 @@ const routeFallbacks = {
     title: 'The Ultimate Guide to Lee County, Virginia',
     description: 'Things to do, Appalachian history, hiking, scenic views, and practical trip-planning advice.',
   },
+  '/articles': {
+    label: 'Discover Lee Journal',
+    title: 'Travel Stories & Trip Ideas',
+    description: 'Practical guides for scenic drives, outdoor adventures, and planning time in Lee County and the Cumberland Gap region.',
+  },
+  '/articles/appalachian-mountain-road-trip': {
+    label: 'Road Trip Guide',
+    title: 'Appalachian Mountain Road Trip',
+    description: 'Routes, realistic drive times, and a four-day Cumberland Gap and Lee County itinerary.',
+  },
   '/community-assistance-lee-county-va': {
     label: 'Food, Housing, Bills & Family Services',
     title: 'Lee County, VA Community Assistance Directory',
@@ -187,14 +197,14 @@ function App() {
       pathname === '/' || pageMetadata[pathname] || isBusinessDetail ? 'index, follow' : 'noindex, follow',
     )
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
-    document.querySelector('meta[property="og:type"]')?.setAttribute('content', 'website')
+    document.querySelector('meta[property="og:type"]')?.setAttribute('content', metadata.ogType ?? 'website')
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalUrl)
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', metadata.title)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.description)
-    document.querySelector('meta[property="og:image"]')?.setAttribute('content', 'https://discoverleeva.com/ilovelee.webp')
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', metadata.imageUrl ?? 'https://discoverleeva.com/ilovelee.webp')
     document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.title)
     document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.description)
-    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', 'https://discoverleeva.com/ilovelee.webp')
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', metadata.imageUrl ?? 'https://discoverleeva.com/ilovelee.webp')
 
     let structuredDataScript = document.getElementById(STRUCTURED_DATA_SCRIPT_ID)
     if (!structuredDataScript) {
@@ -205,7 +215,9 @@ function App() {
     }
     structuredDataScript.textContent = serializeStructuredData(pathname, metadata)
 
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }
 
     if (hasNavigated.current) {
       document.getElementById('main-content')?.focus({ preventScroll: true })
