@@ -178,5 +178,3 @@ Yes, with limits. RVs and campers can use the Cumberland Gap Tunnel on Highway 2
 - [Ultimate Guide to Lee County, VA | Things to Do & See](https://discoverleeva.com/guide-to-lee-county-virginia)
 - [Outdoor Things to Do in Lee County, VA | I Love Lee](https://discoverleeva.com/outdoors)
 - [Lee County, Virginia History & Heritage | I Love Lee](https://discoverleeva.com/heritage)
-
-[Created with BabyLoveGrowth for Google and AI search](https://www.babylovegrowth.ai)
