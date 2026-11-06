@@ -1,5 +1,4 @@
 import { articles } from '../articles'
-import cumberlandGap from '../assets/cgap.webp'
 import './ArticlePage.css'
 
 const formatDate = (value) => new Intl.DateTimeFormat('en-US', {
@@ -13,20 +12,20 @@ function ArticlesIndex() {
   return (
     <div className="articles-index">
       <div className="articles-index-grid">
-        {articles.map((article) => (
+        {articles.map((article, index) => (
           <article className="article-card" key={article.slug}>
             <a className="article-card-image" href={`${article.path}/`} aria-label={`Read ${article.title}`}>
               <img
-                src={cumberlandGap}
-                alt="Morning fog rolling through the Appalachian ridges at Cumberland Gap"
+                src={article.heroImage}
+                alt={article.heroAlt}
                 width="1440"
                 height="810"
-                loading="eager"
+                loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
               />
             </a>
             <div className="article-card-copy">
-              <p className="article-card-meta">Road trips · {formatDate(article.datePublished)}</p>
+              <p className="article-card-meta">{article.cardLabel} · {formatDate(article.datePublished)}</p>
               <h2><a href={`${article.path}/`}>{article.title}</a></h2>
               <p>{article.excerpt}</p>
               <a className="article-card-link" href={`${article.path}/`}>Read the guide <span aria-hidden="true">→</span></a>

@@ -1,13 +1,16 @@
 import { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import articleMarkdown from '../content/appalachian-mountain-road-trip.md?raw'
-import { articles } from '../articles'
-import cumberlandGap from '../assets/cgap.webp'
+import roadTripMarkdown from '../content/appalachian-mountain-road-trip.md?raw'
+import familyVacationsMarkdown from '../content/family-vacations-in-virginia.md?raw'
 import './ArticlePage.css'
 
-const article = articles[0]
-const articleBody = articleMarkdown
+const articleMarkdownBySlug = {
+  'appalachian-mountain-road-trip': roadTripMarkdown,
+  'family-vacations-in-virginia': familyVacationsMarkdown,
+}
+
+const getArticleBody = (article) => articleMarkdownBySlug[article.slug]
   .replace(/^# .+\n+/, '')
   .replace(/^!\[[^\]]*\]\([^\n]+\)\n+/, '')
 
@@ -28,7 +31,9 @@ const formatDate = (value) => new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 }).format(new Date(`${value}T12:00:00Z`))
 
-function ArticlePage() {
+function ArticlePage({ article }) {
+  const articleBody = getArticleBody(article)
+
   useEffect(() => {
     const anchor = decodeURIComponent(window.location.hash.slice(1))
     if (!anchor) return undefined
@@ -45,8 +50,8 @@ function ArticlePage() {
       <header className="story-masthead">
         <img
           className="story-masthead-image"
-          src={cumberlandGap}
-          alt="Morning fog rolling through the Appalachian ridges at Cumberland Gap"
+          src={article.heroImage}
+          alt={article.heroAlt}
           width="1440"
           height="810"
           loading="eager"
@@ -58,16 +63,16 @@ function ArticlePage() {
           <nav className="story-breadcrumbs" aria-label="Breadcrumb">
             <a href="/">Home</a><span aria-hidden="true">/</span>
             <a href="/articles/">Travel Stories</a><span aria-hidden="true">/</span>
-            <span aria-current="page">Appalachian Mountain Road Trip</span>
+            <span aria-current="page">{article.shortTitle}</span>
           </nav>
-          <p className="story-kicker">Road trip guide · Cumberland Gap</p>
+          <p className="story-kicker">{article.kicker}</p>
           <h1>{article.title}</h1>
           <p className="story-deck">{article.excerpt}</p>
           <p className="story-byline">By {article.author} · <time dateTime={article.datePublished}>{formatDate(article.datePublished)}</time></p>
         </div>
       </header>
 
-      <p className="story-photo-note">Morning fog over the Cumberland Gap region in Lee County, Virginia.</p>
+      <p className="story-photo-note">{article.photoNote}</p>
 
       <div className="story-body">
         <ReactMarkdown

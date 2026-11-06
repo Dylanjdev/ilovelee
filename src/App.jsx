@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Layout from './components/Layout'
 import Home from './components/Home'
+import { articleByPath } from './articles'
 import { pageMetadata } from './pageMetadata'
 import { businessSlugFromPath } from './lib/businessDirectory'
 import { serializeStructuredData, STRUCTURED_DATA_SCRIPT_ID } from './structuredData'
@@ -87,7 +88,12 @@ const routeFallbacks = {
 }
 
 function RouteFallback({ pathname }) {
-  const route = routeFallbacks[pathname] ?? (businessSlugFromPath(pathname) ? {
+  const article = articleByPath(pathname)
+  const route = routeFallbacks[pathname] ?? (article ? {
+    label: article.kicker,
+    title: article.shortTitle,
+    description: article.excerpt,
+  } : businessSlugFromPath(pathname) ? {
     label: 'Lee County Business Directory',
     title: 'Loading Business Listing',
     description: 'Loading address, contact information, directions, and other listing details.',

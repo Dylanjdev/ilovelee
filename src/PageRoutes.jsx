@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import SectionPage from './components/SectionPage'
 import TownCommunities from './components/TownCommunities'
+import { articleByPath } from './articles'
 import { businessSlugFromPath } from './lib/businessDirectory'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
@@ -937,6 +938,7 @@ const pages = [
 
 function PageRoutes({ pathname }) {
   const businessSlug = businessSlugFromPath(pathname)
+  const article = articleByPath(pathname)
 
   if (businessSlug) {
     return (
@@ -946,10 +948,10 @@ function PageRoutes({ pathname }) {
     )
   }
 
-  if (pathname === '/articles/appalachian-mountain-road-trip') {
+  if (article) {
     return (
       <Suspense fallback={<div className="route-loading" role="status">Loading article…</div>}>
-        <ArticlePage />
+        <ArticlePage article={article} />
       </Suspense>
     )
   }

@@ -31,6 +31,7 @@ const collectionPages = new Set([
 const breadcrumbNames = {
   '/articles': 'Travel Stories',
   '/articles/appalachian-mountain-road-trip': 'Appalachian Mountain Road Trip',
+  '/articles/family-vacations-in-virginia': 'Family Vacations in Virginia',
   '/visitor-info': 'Visitor Information',
   '/guide-to-lee-county-virginia': 'Ultimate Guide to Lee County',
   '/community-assistance-lee-county-va': 'Community Assistance Directory',

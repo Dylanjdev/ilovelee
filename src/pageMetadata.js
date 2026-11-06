@@ -38,6 +38,20 @@ export const pageMetadata = {
       author: 'Discover Lee',
     },
   },
+  '/articles/family-vacations-in-virginia': {
+    title: 'Family Vacations in Virginia | Where to Go & What to Do',
+    description:
+      'Plan a family vacation in Virginia by region, compare mountain, coastal and history trips, and follow a three-day Lee County family itinerary.',
+    ogType: 'article',
+    imageUrl:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1793774934898_Family-looking-across-Cumberland-Gap-mountains.jpeg',
+    article: {
+      headline: 'Family Vacations in Virginia: Where to Go and What to Do',
+      datePublished: '2026-11-06',
+      dateModified: '2026-11-06',
+      author: 'Discover Lee',
+    },
+  },
   '/calendar': {
     title: 'Lee County, VA Events | Festivals & Community Calendar',
     description:
