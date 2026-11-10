@@ -24,6 +24,20 @@ export const pageMetadata = {
     description:
       'Read practical Lee County and Cumberland Gap travel stories, scenic-drive guides, itineraries, outdoor tips, and local trip-planning ideas.',
   },
+  '/articles/virginia-motorcycle-trips': {
+    title: 'Virginia Motorcycle Trips | Best Roads & Rides',
+    description:
+      'Plan a Virginia motorcycle trip with scenic roads, route comparisons, rider rules, a five-day itinerary, and a Lee County finish.',
+    ogType: 'article',
+    imageUrl:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1794035112697_Motorcyclist-riding-a-curve-on-Virginia-s-VA-16.jpeg',
+    article: {
+      headline: 'Virginia Motorcycle Trips: Best Rides, Roads and Planning Tips',
+      datePublished: '2026-11-09',
+      dateModified: '2026-11-09',
+      author: 'Discover Lee',
+    },
+  },
   '/articles/appalachian-mountain-road-trip': {
     title: 'Appalachian Mountain Road Trip & Cumberland Gap Guide',
     description:

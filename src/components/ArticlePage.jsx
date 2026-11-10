@@ -3,11 +3,13 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import roadTripMarkdown from '../content/appalachian-mountain-road-trip.md?raw'
 import familyVacationsMarkdown from '../content/family-vacations-in-virginia.md?raw'
+import motorcycleTripsMarkdown from '../content/virginia-motorcycle-trips.md?raw'
 import './ArticlePage.css'
 
 const articleMarkdownBySlug = {
   'appalachian-mountain-road-trip': roadTripMarkdown,
   'family-vacations-in-virginia': familyVacationsMarkdown,
+  'virginia-motorcycle-trips': motorcycleTripsMarkdown,
 }
 
 const getArticleBody = (article) => articleMarkdownBySlug[article.slug]

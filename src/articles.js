@@ -1,5 +1,24 @@
 export const articles = [
   {
+    slug: 'virginia-motorcycle-trips',
+    path: '/articles/virginia-motorcycle-trips',
+    title: 'Virginia Motorcycle Trips: Best Rides, Roads and Planning Tips',
+    shortTitle: 'Virginia Motorcycle Trips',
+    description:
+      'Plan a Virginia motorcycle trip with the best scenic roads, route comparisons, rider rules, a five-day itinerary, and a Lee County finish.',
+    excerpt:
+      'Compare Virginia’s scenic parkways, technical mountain roads, and historic eastern rides, then follow a five-day route west to Lee County.',
+    heroImage:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1794035112697_Motorcyclist-riding-a-curve-on-Virginia-s-VA-16.jpeg',
+    heroAlt: 'Motorcyclist riding a curve on Virginia’s VA-16',
+    photoNote: 'A motorcyclist leans into a curve on Virginia Route 16.',
+    cardLabel: 'Motorcycle trips',
+    kicker: 'Motorcycle trip guide · Virginia',
+    datePublished: '2026-11-09',
+    dateModified: '2026-11-09',
+    author: 'Discover Lee',
+  },
+  {
     slug: 'family-vacations-in-virginia',
     path: '/articles/family-vacations-in-virginia',
     title: 'Family Vacations in Virginia: Where to Go and What to Do',

@@ -30,6 +30,7 @@ const collectionPages = new Set([
 
 const breadcrumbNames = {
   '/articles': 'Travel Stories',
+  '/articles/virginia-motorcycle-trips': 'Virginia Motorcycle Trips',
   '/articles/appalachian-mountain-road-trip': 'Appalachian Mountain Road Trip',
   '/articles/family-vacations-in-virginia': 'Family Vacations in Virginia',
   '/visitor-info': 'Visitor Information',
