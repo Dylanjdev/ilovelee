@@ -16,7 +16,7 @@ import { serializeBusinessStructuredData, serializeStructuredData } from '../src
 
 const routes = Object.keys(pageMetadata).filter((route) => route !== '/')
 
-const distDir = 'dist'
+const distDir = process.argv[2] || 'dist'
 const appShell = join(distDir, 'index.html')
 const appShellHtml = await readFile(appShell, 'utf8')
 const siteOrigin = 'https://discoverleeva.com'
