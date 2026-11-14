@@ -11,6 +11,8 @@ const EVENT_COLUMNS = [
   'address',
   'website_url',
   'category',
+  'is_recurring',
+  'recurrence_text',
   'created_at',
   'updated_at',
 ].join(',')

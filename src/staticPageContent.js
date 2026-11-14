@@ -69,6 +69,7 @@ const pageCopy = {
     paragraphs: [
       'Find festivals, live music, community gatherings, family activities, outdoor programs, workshops, performances, and seasonal celebrations in Jonesville, Pennington Gap, and communities across Lee County.',
       'Event details can change, so review the organizer’s latest information before attending. Local organizations can also use the calendar tools to share an event and help residents and visitors discover what is happening throughout the county.',
+      'Each approved listing has a dedicated event page with its confirmed date, Eastern Time schedule, venue, street address, description, recurring schedule when applicable, and organizer website. Upcoming and recurring event pages are linked below so residents, visitors, and search engines can discover current Lee County happenings.',
     ],
   },
   '/artisans': {

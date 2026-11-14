@@ -6,6 +6,14 @@ import {
   googleMapsBusinessUrl,
   parseBusinessAddress,
 } from './lib/businessDirectory.js'
+import {
+  eventCanonicalUrl,
+  eventPageMetadata,
+  eventPath,
+  eventSchemaEndDate,
+  eventSchemaStartDate,
+  safeEventWebsiteUrl,
+} from './lib/eventDirectory.js'
 
 export const STRUCTURED_DATA_SCRIPT_ID = 'site-structured-data'
 
@@ -310,4 +318,108 @@ export function createBusinessStructuredData(business) {
 
 export function serializeBusinessStructuredData(business) {
   return JSON.stringify(createBusinessStructuredData(business)).replaceAll('<', '\\u003c')
+}
+
+export function createEventStructuredData(event) {
+  const metadata = eventPageMetadata(event)
+  const path = eventPath(event)
+  const canonicalUrl = eventCanonicalUrl(event)
+  const data = createStructuredData(path, metadata)
+  const webPage = data['@graph'].find((node) => node['@id'] === `${canonicalUrl}#webpage`)
+  const breadcrumb = data['@graph'].find((node) => node['@type'] === 'BreadcrumbList')
+  const eventId = `${canonicalUrl}#event`
+  const websiteUrl = safeEventWebsiteUrl(event.website_url)
+  const place = event.location_name || event.address ? {
+    '@type': 'Place',
+    name: event.location_name || 'Lee County, Virginia',
+    address: event.address ? {
+      '@type': 'PostalAddress',
+      ...parseBusinessAddress(event.address),
+    } : undefined,
+  } : undefined
+  const eventNode = {
+    '@type': 'Event',
+    '@id': eventId,
+    name: event.title,
+    description: [
+      event.recurrence_text ? `Recurring schedule: ${event.recurrence_text}.` : null,
+      event.description,
+    ].filter(Boolean).join(' ') || metadata.description,
+    url: canonicalUrl,
+    image: [metadata.imageUrl],
+    startDate: eventSchemaStartDate(event),
+    endDate: eventSchemaEndDate(event),
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    location: place,
+    organizer: {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: 'I Love Lee',
+      url: homeUrl,
+    },
+    mainEntityOfPage: { '@id': `${canonicalUrl}#webpage` },
+    sameAs: websiteUrl ? [websiteUrl] : undefined,
+  }
+
+  webPage.mainEntity = { '@id': eventId }
+  if (event.updated_at) {
+    webPage.dateModified = String(event.updated_at).slice(0, 10)
+  }
+
+  breadcrumb.itemListElement = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: homeUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Lee County Events',
+      item: `${siteOrigin}/calendar/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: event.title,
+      item: canonicalUrl,
+    },
+  ]
+
+  data['@graph'].push(eventNode)
+  return data
+}
+
+export function serializeEventStructuredData(event) {
+  return JSON.stringify(createEventStructuredData(event)).replaceAll('<', '\\u003c')
+}
+
+export function createCalendarStructuredData(events) {
+  const data = createStructuredData('/calendar')
+  const canonicalUrl = `${siteOrigin}/calendar/`
+  const webPage = data['@graph'].find((node) => node['@id'] === `${canonicalUrl}#webpage`)
+  const itemListId = `${canonicalUrl}#current-events`
+  const publicEvents = events ?? []
+
+  webPage.mainEntity = { '@id': itemListId }
+  data['@graph'].push({
+    '@type': 'ItemList',
+    '@id': itemListId,
+    name: 'Upcoming and recurring Lee County, Virginia events',
+    numberOfItems: publicEvents.length,
+    itemListElement: publicEvents.map((event, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: event.title,
+      url: eventCanonicalUrl(event),
+    })),
+  })
+
+  return data
+}
+
+export function serializeCalendarStructuredData(events) {
+  return JSON.stringify(createCalendarStructuredData(events)).replaceAll('<', '\\u003c')
 }

@@ -3,6 +3,7 @@ import SectionPage from './components/SectionPage'
 import TownCommunities from './components/TownCommunities'
 import { articleByPath } from './articles'
 import { businessSlugFromPath } from './lib/businessDirectory'
+import { eventIdFromPath } from './lib/eventDirectory'
 import cumberlandGap from './assets/cgap.webp'
 import wildernessRoad from './assets/wilder.webp'
 import whiteRocks from './assets/whiterock.webp'
@@ -37,6 +38,7 @@ const ArtisanDirectory = lazy(() => import('./components/ArtisanDirectory'))
 const UltimateGuide = lazy(() => import('./components/UltimateGuide'))
 const CommunityAssistance = lazy(() => import('./components/CommunityAssistance'))
 const BusinessDetailPage = lazy(() => import('./components/BusinessDetailPage'))
+const EventDetailPage = lazy(() => import('./components/EventDetailPage'))
 const ArticlesIndex = lazy(() => import('./components/ArticlesIndex'))
 const ArticlePage = lazy(() => import('./components/ArticlePage'))
 
@@ -355,6 +357,13 @@ const pages = [
         paragraphs: [
           'A Lee County event can be the starting point for a longer Southwest Virginia trip. Pair a festival, concert, or community program with time in Jonesville or Pennington Gap, outdoor recreation near Cumberland Gap, local dining and shopping, Appalachian heritage sites, or an overnight stay in the county.',
           'Event schedules can change because of weather, venue needs, or organizer updates. Follow the event website when one is provided and verify current details before making a special trip.',
+        ],
+      },
+      {
+        title: 'Recurring Events and Regular Community Programs',
+        paragraphs: [
+          'Recurring Lee County events may include weekly markets, regular live-music nights, arts and craft programs, public meetings, park activities, and seasonal community gatherings. Their dedicated event pages remain available between occurrences so visitors can bookmark and share one reliable source.',
+          'The date shown on a recurring event page is the next or most recently confirmed occurrence. Check the recurring schedule and organizer website before attending, because holiday weeks, weather, venue needs, and seasonal schedules can change the usual pattern.',
         ],
       },
     ],
@@ -938,7 +947,16 @@ const pages = [
 
 function PageRoutes({ pathname }) {
   const businessSlug = businessSlugFromPath(pathname)
+  const eventId = eventIdFromPath(pathname)
   const article = articleByPath(pathname)
+
+  if (eventId) {
+    return (
+      <Suspense fallback={<div className="route-loading" role="status">Loading event details…</div>}>
+        <EventDetailPage key={eventId} eventId={eventId} />
+      </Suspense>
+    )
+  }
 
   if (businessSlug) {
     return (

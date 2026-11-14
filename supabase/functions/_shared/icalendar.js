@@ -113,7 +113,11 @@ function eventLines(event) {
     if (event.end_at) lines.push(`DTEND:${formatUtcDateTime(event.end_at)}`)
   }
 
-  if (event.description) lines.push(`DESCRIPTION:${escapeText(event.description)}`)
+  const description = [
+    event.recurrence_text ? `Recurring schedule: ${event.recurrence_text}` : null,
+    event.description,
+  ].filter(Boolean).join('\n\n')
+  if (description) lines.push(`DESCRIPTION:${escapeText(description)}`)
 
   const location = [event.location_name, event.address].filter(Boolean).join(', ')
   if (location) lines.push(`LOCATION:${escapeText(location)}`)

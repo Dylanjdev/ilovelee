@@ -4,7 +4,18 @@ import Home from './components/Home'
 import { articleByPath } from './articles'
 import { pageMetadata } from './pageMetadata'
 import { businessSlugFromPath } from './lib/businessDirectory'
-import { serializeStructuredData, STRUCTURED_DATA_SCRIPT_ID } from './structuredData'
+import {
+  eventCanonicalUrl,
+  eventIdFromPath,
+  eventPageMetadata,
+  readEmbeddedEvent,
+} from './lib/eventDirectory'
+import {
+  serializeEventStructuredData,
+  serializeStructuredData,
+  STRUCTURED_DATA_SCRIPT_ID,
+} from './structuredData'
+import './components/EventDetailPage.css'
 import './components/SectionPage.css'
 
 const PageRoutes = lazy(() => import('./PageRoutes.jsx'))
@@ -89,10 +100,15 @@ const routeFallbacks = {
 
 function RouteFallback({ pathname }) {
   const article = articleByPath(pathname)
+  const eventId = eventIdFromPath(pathname)
   const route = routeFallbacks[pathname] ?? (article ? {
     label: article.kicker,
     title: article.shortTitle,
     description: article.excerpt,
+  } : eventId ? {
+    label: 'Lee County Events',
+    title: 'Loading Event Details',
+    description: 'Loading the event schedule, location, description, and organizer website.',
   } : businessSlugFromPath(pathname) ? {
     label: 'Lee County Business Directory',
     title: 'Loading Business Listing',
@@ -185,10 +201,16 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const eventId = eventIdFromPath(pathname)
+    const embeddedEvent = readEmbeddedEvent(eventId)
     const canonicalPath = pathname === '/' ? '/' : `${pathname}/`
-    const canonicalUrl = new URL(canonicalPath, 'https://discoverleeva.com').href
+    const canonicalUrl = embeddedEvent
+      ? eventCanonicalUrl(embeddedEvent)
+      : new URL(canonicalPath, 'https://discoverleeva.com').href
     const isBusinessDetail = Boolean(businessSlugFromPath(pathname))
-    const metadata = pageMetadata[pathname] ?? (isBusinessDetail ? {
+    const metadata = pageMetadata[pathname] ?? (embeddedEvent
+      ? eventPageMetadata(embeddedEvent)
+      : isBusinessDetail ? {
       title: 'Lee County, VA Business | I Love Lee Directory',
       description: 'Find address, contact information, directions, and more for this Lee County, Virginia business.',
     } : {
@@ -200,7 +222,9 @@ function App() {
     document.querySelector('meta[name="description"]')?.setAttribute('content', metadata.description)
     document.querySelector('meta[name="robots"]')?.setAttribute(
       'content',
-      pathname === '/' || pageMetadata[pathname] || isBusinessDetail ? 'index, follow' : 'noindex, follow',
+      pathname === '/' || pageMetadata[pathname] || isBusinessDetail || embeddedEvent
+        ? 'index, follow'
+        : 'noindex, follow',
     )
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
     document.querySelector('meta[property="og:type"]')?.setAttribute('content', metadata.ogType ?? 'website')
@@ -219,7 +243,9 @@ function App() {
       structuredDataScript.type = 'application/ld+json'
       document.head.appendChild(structuredDataScript)
     }
-    structuredDataScript.textContent = serializeStructuredData(pathname, metadata)
+    structuredDataScript.textContent = embeddedEvent
+      ? serializeEventStructuredData(embeddedEvent)
+      : serializeStructuredData(pathname, metadata)
 
     if (!window.location.hash) {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })

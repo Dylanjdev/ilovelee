@@ -4,8 +4,11 @@ import { pageMetadata } from '../pageMetadata.js'
 import {
   canonicalUrlForPath,
   createBusinessStructuredData,
+  createCalendarStructuredData,
+  createEventStructuredData,
   createStructuredData,
   serializeBusinessStructuredData,
+  serializeEventStructuredData,
   serializeStructuredData,
 } from '../structuredData.js'
 
@@ -94,6 +97,50 @@ test('business pages include local business schema and three-level breadcrumbs',
   assert.equal(localBusiness.hasMap.startsWith('https://www.google.com/maps/search/'), true)
   assert.equal(breadcrumb.itemListElement.length, 3)
   assert.equal(JSON.parse(serializeBusinessStructuredData(business))['@graph'].length > 0, true)
+})
+
+test('event pages include Event schema and three-level breadcrumbs', () => {
+  const event = {
+    id: '95574fbc-657a-4918-9156-e4bc6ff8ccef',
+    title: 'Wilderness Road Fall Festival',
+    description: 'A community celebration with music, food, and local makers.',
+    start_at: '2026-11-07T23:00:00+00:00',
+    end_at: '2026-11-08T01:00:00+00:00',
+    all_day: false,
+    location_name: 'Wilderness Road State Park',
+    address: '8051 Wilderness Road Trail, Ewing, VA 24248',
+    website_url: 'https://example.com/festival',
+    is_recurring: true,
+    recurrence_text: 'Every Saturday in November',
+    updated_at: '2026-11-01T12:00:00Z',
+  }
+  const data = createEventStructuredData(event)
+  const page = nodeByType(data, 'WebPage')
+  const eventNode = nodeByType(data, 'Event')
+  const breadcrumb = nodeByType(data, 'BreadcrumbList')
+
+  assert.equal(page.mainEntity['@id'], eventNode['@id'])
+  assert.equal(page.dateModified, '2026-11-01')
+  assert.equal(eventNode.startDate, event.start_at)
+  assert.equal(eventNode.location.address.addressLocality, 'Ewing')
+  assert.equal(eventNode.eventStatus, 'https://schema.org/EventScheduled')
+  assert.match(eventNode.description, /Every Saturday in November/)
+  assert.equal(breadcrumb.itemListElement.length, 3)
+  assert.equal(JSON.parse(serializeEventStructuredData(event))['@graph'].length > 0, true)
+})
+
+test('calendar schema exposes current event pages as an ItemList', () => {
+  const events = [{
+    id: '95574fbc-657a-4918-9156-e4bc6ff8ccef',
+    title: 'Wilderness Road Fall Festival',
+  }]
+  const data = createCalendarStructuredData(events)
+  const calendar = nodeByType(data, 'CollectionPage')
+  const eventList = nodeByType(data, 'ItemList')
+
+  assert.equal(calendar.mainEntity['@id'], eventList['@id'])
+  assert.equal(eventList.numberOfItems, 1)
+  assert.match(eventList.itemListElement[0].url, /^https:\/\/discoverleeva\.com\/events\//)
 })
 
 test('article routes include Article schema in their generated JSON-LD', () => {

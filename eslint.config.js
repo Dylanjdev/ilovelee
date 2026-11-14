@@ -31,4 +31,12 @@ export default defineConfig([
       globals: globals.node,
     },
   },
+  {
+    files: ['worker/**/*.js'],
+    languageOptions: {
+      globals: {
+        HTMLRewriter: 'readonly',
+      },
+    },
+  },
 ])

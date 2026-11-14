@@ -267,6 +267,13 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
+.calendar-event-card h3 a {
+  color: inherit;
+  text-decoration-color: rgba(143, 29, 44, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
 .calendar-setup-card h2 {
   margin: 0;
   color: #1f2530;
@@ -1214,6 +1221,11 @@
   font-weight: 750;
 }
 
+.calendar-event-card .event-recurrence {
+  color: #385a46;
+  font-weight: 750;
+}
+
 .calendar-event-card .event-location {
   color: var(--brand);
 }
@@ -1288,7 +1300,12 @@
   border: 1px solid var(--line);
   text-align: left;
   cursor: pointer;
+  text-decoration: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.upcoming-event-item[hidden] {
+  display: none;
 }
 
 .upcoming-event-item:hover,

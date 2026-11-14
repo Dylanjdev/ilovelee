@@ -56,6 +56,8 @@ create table if not exists public.events (
   address text check (address is null or char_length(address) <= 240),
   website_url text,
   category text not null default 'Community',
+  is_recurring boolean not null default false,
+  recurrence_text text,
   is_published boolean not null default false,
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   reviewed_at timestamptz,
@@ -64,12 +66,17 @@ create table if not exists public.events (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint events_end_after_start check (end_at is null or end_at > start_at),
+  constraint events_recurrence_text_length_check check (
+    recurrence_text is null or char_length(recurrence_text) <= 160
+  ),
   constraint events_only_approved_can_be_published check (status = 'approved' or not is_published)
 );
 
 -- Keep this file rerunnable for calendars installed before public submissions.
 alter table public.events
   add column if not exists status text not null default 'approved',
+  add column if not exists is_recurring boolean not null default false,
+  add column if not exists recurrence_text text,
   add column if not exists reviewed_at timestamptz,
   add column if not exists reviewed_by uuid references auth.users (id) on delete set null;
 
@@ -99,6 +106,18 @@ begin
     alter table public.events
       add constraint events_only_approved_can_be_published check (
         status = 'approved' or not is_published
+      );
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'events_recurrence_text_length_check'
+      and conrelid = 'public.events'::regclass
+  ) then
+    alter table public.events
+      add constraint events_recurrence_text_length_check check (
+        recurrence_text is null or char_length(recurrence_text) <= 160
       );
   end if;
 end;

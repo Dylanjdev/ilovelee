@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://discoverleeva.com/sitemap.xml
+Sitemap: https://discoverleeva.com/event-sitemap.xml

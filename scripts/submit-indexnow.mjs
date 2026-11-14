@@ -3,9 +3,10 @@ const host = 'discoverleeva.com'
 const key = '4cfa8c3659bc2b99046dac368ff0a445'
 const keyLocation = `${siteOrigin}/${key}.txt`
 
-const [keyResponse, sitemapResponse] = await Promise.all([
+const [keyResponse, sitemapResponse, eventSitemapResponse] = await Promise.all([
   fetch(keyLocation, { headers: { accept: 'text/plain' } }),
   fetch(`${siteOrigin}/sitemap.xml`, { headers: { accept: 'application/xml' } }),
+  fetch(`${siteOrigin}/event-sitemap.xml`, { headers: { accept: 'application/xml' } }),
 ])
 
 if (!keyResponse.ok || (await keyResponse.text()).trim() !== key) {
@@ -16,8 +17,18 @@ if (!sitemapResponse.ok) {
   throw new Error(`Could not load the deployed sitemap: HTTP ${sitemapResponse.status}.`)
 }
 
-const sitemap = await sitemapResponse.text()
-const urlList = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
+if (!eventSitemapResponse.ok) {
+  throw new Error(`Could not load the deployed event sitemap: HTTP ${eventSitemapResponse.status}.`)
+}
+
+const [sitemap, eventSitemap] = await Promise.all([
+  sitemapResponse.text(),
+  eventSitemapResponse.text(),
+])
+const urlList = [...new Set(
+  [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), ...eventSitemap.matchAll(/<loc>([^<]+)<\/loc>/g)]
+    .map((match) => match[1]),
+)]
 
 if (urlList.length === 0) {
   throw new Error('The deployed sitemap did not contain any URLs.')

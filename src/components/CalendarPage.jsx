@@ -11,6 +11,7 @@ import {
   toWebcalUrl,
 } from '../lib/calendarSubscription'
 import { EVENT_CSV_HEADERS, parseEventCsv } from '../lib/eventCsv'
+import { eventPath } from '../lib/eventDirectory'
 import './CalendarPage.css'
 
 const EVENT_TIME_ZONE = 'America/New_York'
@@ -43,6 +44,8 @@ const EVENT_COLUMNS = [
   'address',
   'website_url',
   'category',
+  'is_recurring',
+  'recurrence_text',
   'is_published',
   'status',
   'reviewed_at',
@@ -152,6 +155,8 @@ function blankEvent(date = localDateKey(new Date())) {
     address: '',
     website_url: '',
     category: 'Community',
+    is_recurring: false,
+    recurrence_text: '',
     is_published: true,
     status: 'approved',
   }
@@ -173,6 +178,8 @@ function eventToForm(event) {
     address: event.address ?? '',
     website_url: event.website_url ?? '',
     category: event.category ?? 'Community',
+    is_recurring: Boolean(event.is_recurring),
+    recurrence_text: event.recurrence_text ?? '',
     is_published: Boolean(event.is_published),
     status: event.status ?? 'approved',
   }
@@ -192,6 +199,8 @@ function eventPayload(form) {
     address: form.address.trim() || null,
     website_url: normalizeWebsiteUrl(form.website_url),
     category: form.category,
+    is_recurring: Boolean(form.is_recurring),
+    recurrence_text: form.is_recurring ? form.recurrence_text.trim() || null : null,
     is_published: form.status === 'approved' && form.is_published,
     status: form.status,
   }
@@ -412,6 +421,28 @@ function EventInformationFields({ form, updateField, showReviewControls = false 
 
       {showReviewControls && (
         <>
+          <label className="event-check-field field-wide">
+            <input
+              type="checkbox"
+              checked={form.is_recurring}
+              onChange={(event) => updateField('is_recurring', event.target.checked)}
+            />
+            <span>Recurring event — keep its permanent event page between occurrences</span>
+          </label>
+
+          {form.is_recurring && (
+            <label className="field-wide">
+              <span>Recurring schedule</span>
+              <input
+                type="text"
+                value={form.recurrence_text}
+                onChange={(event) => updateField('recurrence_text', event.target.value)}
+                maxLength="160"
+                placeholder="Every Tuesday at 6:00 PM, March through October"
+              />
+            </label>
+          )}
+
           <label>
             <span>Review status</span>
             <select
@@ -758,6 +789,7 @@ function EventForm({ event, initialDate, onCancel, onSaved }) {
       ...current,
       [field]: value,
       ...(field === 'status' && value !== 'approved' ? { is_published: false } : {}),
+      ...(field === 'is_recurring' && !value ? { recurrence_text: '' } : {}),
     }))
   }
 
@@ -1182,15 +1214,21 @@ function EventDetails({ event, isAdmin, onEdit, onDelete }) {
   return (
     <article className={`calendar-event-card${event.is_published ? '' : ' is-draft'}`}>
       <div className="event-card-topline">
-        <span className="event-category">{event.category}</span>
+        <span className="event-category">
+          {event.category}{event.is_recurring ? ' · Recurring' : ''}
+        </span>
         {!event.is_published && <span className="event-draft-badge">Draft</span>}
       </div>
-      <h3>{event.title}</h3>
+      <h3><a href={`${eventPath(event)}/`}>{event.title}</a></h3>
       <p className="event-schedule">{formatEventSchedule(event)}</p>
+      {event.recurrence_text && <p className="event-recurrence">Repeats: {event.recurrence_text}</p>}
       {event.location_name && <p className="event-location"><strong>{event.location_name}</strong></p>}
       {event.address && <p className="event-address">{event.address}</p>}
       {event.description && <p className="event-description">{event.description}</p>}
       <div className="event-card-actions">
+        <a className="calendar-button button-quiet" href={`${eventPath(event)}/`}>
+          View event details
+        </a>
         {websiteUrl && (
           <a className="calendar-button button-primary" href={websiteUrl} target="_blank" rel="noopener noreferrer">
             Event website
@@ -1207,11 +1245,11 @@ function EventDetails({ event, isAdmin, onEdit, onDelete }) {
   )
 }
 
-function UpcomingEventItem({ event, onSelect }) {
+function UpcomingEventItem({ event, hidden }) {
   const startDate = new Date(event.start_at)
 
   return (
-    <button type="button" className="upcoming-event-item" onClick={() => onSelect(event)}>
+    <a className="upcoming-event-item" href={`${eventPath(event)}/`} hidden={hidden}>
       <span className="upcoming-date-tile" aria-hidden="true">
         <span>{upcomingMonthFormatter.format(startDate)}</span>
         <strong>{upcomingDayFormatter.format(startDate)}</strong>
@@ -1219,13 +1257,14 @@ function UpcomingEventItem({ event, onSelect }) {
       <span className="upcoming-event-copy">
         <span className="upcoming-event-meta">
           {event.category}
+          {event.is_recurring && <span> · Recurring</span>}
           {!event.is_published && <span className="upcoming-draft-label">Draft</span>}
         </span>
         <strong>{event.title}</strong>
         <span>{formatEventSchedule(event)}</span>
         {event.location_name && <span>{event.location_name}</span>}
       </span>
-    </button>
+    </a>
   )
 }
 
@@ -1589,8 +1628,6 @@ function CalendarPage() {
   }, [calendarDays, events])
 
   const selectedEvents = eventsByDate.get(selectedDate) ?? []
-  const visibleUpcomingEvents = upcomingExpanded ? upcomingEvents : upcomingEvents.slice(0, 3)
-
   const changeMonth = (offset) => {
     const nextMonth = new Date(month.getFullYear(), month.getMonth() + offset, 1)
     setMonth(nextMonth)
@@ -1602,13 +1639,6 @@ function CalendarPage() {
     const now = new Date()
     setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
     setSelectedDate(localDateKey(now))
-  }
-
-  const selectUpcomingEvent = (event) => {
-    const key = eventDateKey(event.start_at)
-    const date = dateFromKey(key)
-    setMonth(new Date(date.getFullYear(), date.getMonth(), 1))
-    setSelectedDate(key)
   }
 
   const handleSaved = async (message) => {
@@ -2000,8 +2030,12 @@ function CalendarPage() {
             ) : upcomingEvents.length ? (
               <>
                 <div className="upcoming-events-list">
-                  {visibleUpcomingEvents.map((event) => (
-                    <UpcomingEventItem event={event} key={event.id} onSelect={selectUpcomingEvent} />
+                  {upcomingEvents.map((event, index) => (
+                    <UpcomingEventItem
+                      event={event}
+                      hidden={!upcomingExpanded && index >= 3}
+                      key={event.id}
+                    />
                   ))}
                 </div>
                 {upcomingEvents.length > 3 && (

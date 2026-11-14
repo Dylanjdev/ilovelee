@@ -12,6 +12,8 @@ The SQL creates the `events`, `event_submission_contacts`, and `calendar_admins`
 
 The file is safe to rerun when upgrading an existing calendar. Existing events are assigned `approved` status, so currently published events stay visible. Editing the local SQL file does not update Supabase by itself; run the complete current file in the SQL Editor after pulling this version.
 
+For an existing installation, [`supabase/recurring_events_upgrade.sql`](supabase/recurring_events_upgrade.sql) is the smaller recurring-events-only migration. Recurring events keep the same public page between occurrences. Update the existing ten-day cleanup function as shown in that migration so it deletes only rows where `is_recurring = false`.
+
 ## 2. Create each calendar user
 
 1. Open **Authentication > URL Configuration**.
@@ -145,7 +147,7 @@ Visitors use **Submit events** without creating an account. They can enter one e
 
 ## 8. Event fields
 
-The CSV template uses these columns: `title`, `category`, `start_date`, `start_time`, `end_date`, `end_time`, `all_day`, `venue`, `address`, `website`, and `description`. The public form and administrator editor support the same event details. The administrator editor also controls review and draft/published status. Times are saved and displayed in `America/New_York` (Eastern Time). Draft events are visible only to calendar admins.
+The CSV template uses these columns: `title`, `category`, `start_date`, `start_time`, `end_date`, `end_time`, `all_day`, `venue`, `address`, `website`, and `description`. The public form and administrator editor support the same event details. The administrator editor also controls review, draft/published status, and whether an event is recurring. Marking an event recurring keeps its public event page available between occurrences; update its start and end dates when the next occurrence is scheduled. Times are saved and displayed in `America/New_York` (Eastern Time). Draft events are visible only to calendar admins.
 
 ## Production spam protection
 
