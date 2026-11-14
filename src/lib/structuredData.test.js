@@ -51,6 +51,13 @@ test('every known route serializes as valid JSON-LD with its canonical URL', () 
   })
 })
 
+test('every primary page description fits a useful search-snippet range', () => {
+  Object.entries(pageMetadata).forEach(([route, metadata]) => {
+    assert.ok(metadata.description.length >= 120, `${route} description is too short`)
+    assert.ok(metadata.description.length <= 160, `${route} description is too long`)
+  })
+})
+
 test('community assistance page exposes its categories as the main entity', () => {
   const data = createStructuredData('/community-assistance-lee-county-va')
   const page = nodeByType(data, 'CollectionPage')
@@ -83,7 +90,23 @@ test('business pages include local business schema and three-level breadcrumbs',
   assert.equal(page.mainEntity['@id'], localBusiness['@id'])
   assert.equal(page.dateModified, '2026-10-29')
   assert.equal(localBusiness.address.addressLocality, 'Pennington Gap')
+  assert.equal('category' in localBusiness, false)
   assert.equal(localBusiness.hasMap.startsWith('https://www.google.com/maps/search/'), true)
   assert.equal(breadcrumb.itemListElement.length, 3)
   assert.equal(JSON.parse(serializeBusinessStructuredData(business))['@graph'].length > 0, true)
+})
+
+test('article routes include Article schema in their generated JSON-LD', () => {
+  const articleRoutes = Object.entries(pageMetadata).filter(([, metadata]) => metadata.article)
+
+  assert.equal(articleRoutes.length, 4)
+  articleRoutes.forEach(([route, metadata]) => {
+    const data = createStructuredData(route)
+    const article = nodeByType(data, 'Article')
+    const page = nodeByType(data, 'WebPage')
+
+    assert.equal(article.headline, metadata.article.headline)
+    assert.equal(article.mainEntityOfPage['@id'], page['@id'])
+    assert.equal(page.mainEntity['@id'], article['@id'])
+  })
 })

@@ -12,7 +12,7 @@ export const pageMetadata = {
   '/community-assistance-lee-county-va': {
     title: 'Lee County VA Assistance Directory | Food, Housing & Bills',
     description:
-      'Find help in Lee County, VA, including food banks, domestic violence support, rent and utility assistance, housing, clothing, SNAP, Medicaid and family services.',
+      'Find Lee County, VA help for food, domestic violence, rent, utilities, housing, clothing, SNAP, Medicaid, healthcare, seniors, and family services.',
   },
   '/guide-to-lee-county-virginia': {
     title: 'Ultimate Guide to Lee County, VA | Things to Do & See',
@@ -23,6 +23,20 @@ export const pageMetadata = {
     title: 'Lee County Travel Stories & Trip Ideas | Discover Lee',
     description:
       'Read practical Lee County and Cumberland Gap travel stories, scenic-drive guides, itineraries, outdoor tips, and local trip-planning ideas.',
+  },
+  '/articles/mountain-camping-virginia': {
+    title: 'Mountain Camping in Virginia | Cumberland Gap Guide',
+    description:
+      'Plan mountain camping in Virginia with Cumberland Gap campground details, backcountry permits, fees, bear safety, packing tips, and a three-day itinerary.',
+    ogType: 'article',
+    imageUrl:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1794122651743_Tent-at-a-wooded-Cumberland-Gap-campground.jpeg',
+    article: {
+      headline: 'Mountain Camping in Virginia: Where to Pitch Near Cumberland Gap',
+      datePublished: '2026-11-13',
+      dateModified: '2026-11-13',
+      author: 'Discover Lee',
+    },
   },
   '/articles/virginia-motorcycle-trips': {
     title: 'Virginia Motorcycle Trips | Best Roads & Rides',
@@ -89,7 +103,7 @@ export const pageMetadata = {
   '/directory': {
     title: 'Lee County, VA Business Directory | I Love Lee',
     description:
-      'Browse the Lee County, Virginia business directory for restaurants, cafes, shops, lodging, and local services in Jonesville, Pennington Gap, and nearby communities.',
+      'Browse the Lee County, Virginia business directory for restaurants, shops, lodging, and local services in Jonesville, Pennington Gap, and nearby towns.',
   },
   '/lodging': {
     title: 'Places to Stay in Lee County, VA | I Love Lee',

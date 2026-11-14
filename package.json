@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "cf deploy",
+    "deploy": "cf deploy && npm run indexnow",
     "deploy:check": "cf deploy --dry-run",
+    "indexnow": "node scripts/submit-indexnow.mjs",
     "lint": "eslint .",
     "test": "node --test src/lib/*.test.js",
     "preview": "vite preview"

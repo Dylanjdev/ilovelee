@@ -41,7 +41,26 @@ test('business routes and metadata are search-friendly', () => {
   assert.equal(businessPath(business), '/directory/fannon-brothers-tire-co-jonesville')
   assert.equal(businessSlugFromPath(`${businessPath(business)}/`), business.slug)
   assert.match(businessPageMetadata(business).title, /Local Service in Jonesville, VA/)
-  assert.match(businessPageMetadata(business).description, /address, phone number, website, and directions/)
+  assert.match(businessPageMetadata(business).description, /address, contact details, website, and directions/)
+})
+
+test('business descriptions stay within a useful search-snippet range', () => {
+  const shortDescription = businessPageMetadata({
+    name: 'Lee Shop',
+    category: 'shops',
+    address: 'Jonesville, VA 24263',
+    description: 'Local gifts.',
+  }).description
+  const longDescription = businessPageMetadata({
+    name: 'Cumberland Mountain Mercantile',
+    category: 'shops',
+    address: 'Pennington Gap, VA 24277',
+    description: 'Handmade Appalachian gifts and locally produced goods. '.repeat(12),
+  }).description
+
+  assert.equal(shortDescription.length >= 120, true)
+  assert.equal(shortDescription.length <= 150, true)
+  assert.equal(longDescription.length <= 150, true)
 })
 
 test('structured addresses use the ZIP code rather than a numeric street address', () => {

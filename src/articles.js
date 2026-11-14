@@ -1,5 +1,24 @@
 export const articles = [
   {
+    slug: 'mountain-camping-virginia',
+    path: '/articles/mountain-camping-virginia',
+    title: 'Mountain Camping in Virginia: Where to Pitch Near Cumberland Gap',
+    shortTitle: 'Mountain Camping in Virginia',
+    description:
+      'Plan mountain camping in Virginia with Cumberland Gap campground details, backcountry permits, fees, bear safety, packing tips, and a three-day itinerary.',
+    excerpt:
+      'Compare developed and backcountry camping near Cumberland Gap, understand reservations and permits, and plan a safe three-day mountain getaway.',
+    heroImage:
+      'https://media.babylovegrowth.ai/blog-images/organization-28977/1794122651743_Tent-at-a-wooded-Cumberland-Gap-campground.jpeg',
+    heroAlt: 'Tent at a wooded Cumberland Gap campground',
+    photoNote: 'A tent tucked into the woods near Cumberland Gap.',
+    cardLabel: 'Mountain camping',
+    kicker: 'Camping guide · Cumberland Gap',
+    datePublished: '2026-11-13',
+    dateModified: '2026-11-13',
+    author: 'Discover Lee',
+  },
+  {
     slug: 'virginia-motorcycle-trips',
     path: '/articles/virginia-motorcycle-trips',
     title: 'Virginia Motorcycle Trips: Best Rides, Roads and Planning Tips',

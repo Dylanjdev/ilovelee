@@ -1,7 +1,6 @@
 import { pageMetadata } from './pageMetadata.js'
 import {
   businessCanonicalUrl,
-  businessCategoryLabel,
   businessPageMetadata,
   businessPath,
   googleMapsBusinessUrl,
@@ -30,6 +29,7 @@ const collectionPages = new Set([
 
 const breadcrumbNames = {
   '/articles': 'Travel Stories',
+  '/articles/mountain-camping-virginia': 'Mountain Camping in Virginia',
   '/articles/virginia-motorcycle-trips': 'Virginia Motorcycle Trips',
   '/articles/appalachian-mountain-road-trip': 'Appalachian Mountain Road Trip',
   '/articles/family-vacations-in-virginia': 'Family Vacations in Virginia',
@@ -260,7 +260,6 @@ export function createBusinessStructuredData(business) {
     name: business.name,
     description: business.description || metadata.description,
     url: canonicalUrl,
-    category: businessCategoryLabel(business.category),
     address: {
       '@type': 'PostalAddress',
       ...parseBusinessAddress(business.address),

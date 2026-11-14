@@ -3,12 +3,14 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import roadTripMarkdown from '../content/appalachian-mountain-road-trip.md?raw'
 import familyVacationsMarkdown from '../content/family-vacations-in-virginia.md?raw'
+import mountainCampingMarkdown from '../content/mountain-camping-virginia.md?raw'
 import motorcycleTripsMarkdown from '../content/virginia-motorcycle-trips.md?raw'
 import './ArticlePage.css'
 
 const articleMarkdownBySlug = {
   'appalachian-mountain-road-trip': roadTripMarkdown,
   'family-vacations-in-virginia': familyVacationsMarkdown,
+  'mountain-camping-virginia': mountainCampingMarkdown,
   'virginia-motorcycle-trips': motorcycleTripsMarkdown,
 }
 

@@ -119,13 +119,17 @@ export function businessPageMetadata(business) {
   const location = locality ? `${locality}, VA` : 'Lee County, VA'
   const title = shorten(`${business?.name || 'Local Business'} | ${category} in ${location}`, 68)
   const descriptionLead = `${business?.name || 'This business'} is listed as a ${category.toLowerCase()} in ${location}.`
-  const description = business?.description
+  let description = business?.description
     ? `${descriptionLead} ${business.description}`
-    : `${descriptionLead} Find its address, phone number, website, and directions in the I Love Lee business directory.`
+    : descriptionLead
+
+  if (description.length < 120) {
+    description += ' Find its address, contact details, website, and directions in the I Love Lee directory for Lee County, Virginia.'
+  }
 
   return {
     title,
-    description: shorten(description, 158),
+    description: shorten(description, 150),
   }
 }
 

@@ -2,7 +2,13 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import { loadEnv } from 'vite'
+import { articles } from '../src/articles.js'
 import { pageMetadata } from '../src/pageMetadata.js'
+import {
+  siteNavigation,
+  siteOverviewParagraphs,
+  staticPageContentForRoute,
+} from '../src/staticPageContent.js'
 import {
   assignBusinessSlugs,
   businessCanonicalUrl,
@@ -24,11 +30,6 @@ const env = loadEnv('production', process.cwd(), '')
 const supabaseUrl = process.env.VITE_SUPABASE_URL || env.VITE_SUPABASE_URL
 const supabasePublishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
 const assetFiles = await readdir(join(distDir, 'assets'))
-const legacyRedirects = {
-  '/dine-shop': '/directory',
-  '/dineandshop': '/directory',
-}
-
 const findAsset = (prefix, extension) =>
   assetFiles.find((file) => file.startsWith(prefix) && file.endsWith(extension))
 
@@ -56,6 +57,118 @@ const escapeHtml = (value) =>
     .replaceAll('>', '&gt;')
 
 const escapeXml = (value) => escapeHtml(value).replaceAll("'", '&apos;')
+
+const routeHref = (route) => route === '/' ? '/' : `${route}/`
+
+function renderStaticNavigation(route) {
+  return siteNavigation.map(([linkRoute, label]) => (
+    `<a href="${routeHref(linkRoute)}"${linkRoute === route ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`
+  )).join('')
+}
+
+function renderStaticFooterNavigation() {
+  return siteNavigation
+    .filter(([route]) => ['/', '/visitor-info', '/articles', '/map', '/directory', '/lodging', '/outdoors'].includes(route))
+    .map(([route, label]) => `<a href="${routeHref(route)}">${escapeHtml(label)}</a>`)
+    .join('')
+}
+
+function renderExploreLinks(route) {
+  return `<section class="heritage-section">
+    <h2>Explore more of Lee County</h2>
+    <p>Continue planning with these visitor resources, local guides, and directories.</p>
+    <nav class="static-explore-links" aria-label="More Lee County visitor resources">
+      ${siteNavigation
+        .filter(([linkRoute]) => linkRoute !== route)
+        .map(([linkRoute, label]) => `<a href="${routeHref(linkRoute)}">${escapeHtml(label)}</a>`)
+        .join('')}
+    </nav>
+  </section>`
+}
+
+function renderDirectoryLinks(businesses) {
+  if (businesses.length === 0) return ''
+
+  return `<section class="heritage-section">
+    <h2>Browse Lee County businesses</h2>
+    <p>Open a listing for its address, available contact information, and directions.</p>
+    <ul class="static-directory-links">
+      ${businesses.map((business) => (
+        `<li><a href="${routeHref(businessPath(business))}">${escapeHtml(business.name)}</a> — ${escapeHtml(businessCategoryLabel(business.category))}${extractBusinessLocality(business.address) ? ` in ${escapeHtml(extractBusinessLocality(business.address))}` : ''}</li>`
+      )).join('')}
+    </ul>
+  </section>`
+}
+
+function renderArticleLinks() {
+  return `<section class="heritage-section">
+    <h2>Latest Lee County travel stories</h2>
+    <ul class="static-article-links">
+      ${articles.map((article) => (
+        `<li><a href="${routeHref(article.path)}">${escapeHtml(article.title)}</a><p>${escapeHtml(article.excerpt)}</p></li>`
+      )).join('')}
+    </ul>
+  </section>`
+}
+
+function renderStaticRouteContent(route, businesses) {
+  const content = staticPageContentForRoute(route)
+  if (!content) {
+    throw new Error(`Static page content is missing for ${route}.`)
+  }
+
+  const routeSpecificLinks = route === '/directory'
+    ? renderDirectoryLinks(businesses)
+    : route === '/articles'
+      ? renderArticleLinks()
+      : ''
+
+  return `<article class="section-page static-route-page">
+    <div class="section-shell">
+      <header class="section-page-header">
+        <p class="section-label">${escapeHtml(content.eyebrow)}</p>
+        <h1>${escapeHtml(content.heading)}</h1>
+        ${content.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      </header>
+      <section class="heritage-section">
+        <h2>Plan a Lee County visit</h2>
+        ${siteOverviewParagraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      </section>
+      ${routeSpecificLinks}
+      ${renderExploreLinks(route)}
+    </div>
+  </article>`
+}
+
+function renderStaticLayout(route, content) {
+  return `<div class="site-wrap" data-static-route-shell>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="top-nav">
+      <a href="/" class="brand-mark"><img src="/ilovelee.webp" alt="I Love Lee Virginia tourism logo" width="44" height="44" /><span>I Love Lee</span></a>
+      <nav id="primary-navigation" aria-label="Primary">${renderStaticNavigation(route)}</nav>
+    </header>
+    <main id="main-content">${content}</main>
+    <footer class="page-footer">
+      <div class="footer-inner">
+        <div class="footer-main">
+          <div class="footer-brand"><p>I Love Lee</p><span>Plan your trip through Virginia’s westernmost county.</span></div>
+          <div class="footer-column"><p class="footer-heading">Visit</p><a href="tel:+12765488871">(276) 548-8871</a><a href="mailto:tourism@leecountyva.gov">tourism@leecountyva.gov</a><span>33640 Main Street, Jonesville, VA 24263</span></div>
+          <nav class="footer-column footer-nav" aria-label="Footer"><p class="footer-heading">Explore</p>${renderStaticFooterNavigation()}</nav>
+        </div>
+        <div class="footer-bottom"><span>&copy; 2026 I Love Lee · discoverleeva.com · All Rights Reserved.</span></div>
+      </div>
+    </footer>
+  </div>`
+}
+
+function injectRootContent(html, content) {
+  const root = '<div id="root"></div>'
+  if (!html.includes(root)) {
+    throw new Error('The empty root element was not found in the built app shell.')
+  }
+
+  return html.replace(root, `<div id="root">${content}</div>`)
+}
 
 function injectStructuredData(html, route, business) {
   const serializedData = business
@@ -260,17 +373,23 @@ function renderBusinessPageContent(business) {
 
 const approvedBusinesses = await loadApprovedBusinesses()
 
-await writeFile(appShell, injectStructuredData(appShellHtml, '/'))
+await writeFile(
+  appShell,
+  injectRootContent(
+    injectStructuredData(appShellHtml, '/'),
+    renderStaticLayout('/', renderStaticRouteContent('/', approvedBusinesses)),
+  ),
+)
 
 await Promise.all(
   routes.map(async (route) => {
     const routeFile = join(distDir, route, 'index.html')
     const canonicalUrl = `${siteOrigin}${route}/`
     const metadata = pageMetadata[route]
-    const routeHtml = applyPageMetadata(injectStructuredData(appShellHtml, route), {
+    const routeHtml = injectRootContent(applyPageMetadata(injectStructuredData(appShellHtml, route), {
       ...metadata,
       canonicalUrl,
-    })
+    }), renderStaticLayout(route, renderStaticRouteContent(route, approvedBusinesses)))
       .replace(/\s*<link rel="preload" as="image"[^>]*>/, '')
       .replace('  </head>', `${getResourceHints(route)}  </head>`)
 
@@ -291,7 +410,10 @@ await Promise.all(
       ogType: 'business.business',
     })
       .replace(/\s*<link rel="preload" as="image"[^>]*>/, '')
-      .replace('<div id="root"></div>', `<div id="root">${renderBusinessPageContent(business)}</div>`)
+      .replace(
+        '<div id="root"></div>',
+        `<div id="root">${renderStaticLayout(route, renderBusinessPageContent(business))}</div>`,
+      )
       .replace('  </head>', `${getResourceHints(route)}  </head>`)
 
     await mkdir(dirname(routeFile), { recursive: true })
@@ -316,30 +438,3 @@ if (approvedBusinesses.length > 0) {
 }
 
 console.log(`Generated ${approvedBusinesses.length} dedicated business pages.`)
-
-await Promise.all(
-  Object.entries(legacyRedirects).map(async ([legacyRoute, destinationRoute]) => {
-    const routeFile = join(distDir, legacyRoute, 'index.html')
-    const destinationPath = `${destinationRoute}/`
-    const canonicalUrl = `${siteOrigin}${destinationPath}`
-    const redirectHtml = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, follow" />
-    <link rel="canonical" href="${canonicalUrl}" />
-    <meta http-equiv="refresh" content="0; url=${destinationPath}" />
-    <title>Redirecting to the Lee County Business Directory</title>
-    <script>window.location.replace(${JSON.stringify(destinationPath)} + window.location.search + window.location.hash)</script>
-  </head>
-  <body>
-    <p><a href="${destinationPath}">Continue to the Lee County Business Directory</a></p>
-  </body>
-</html>
-`
-
-    await mkdir(dirname(routeFile), { recursive: true })
-    await writeFile(routeFile, redirectHtml)
-  }),
-)
