@@ -46,11 +46,18 @@ Deploy again to attach the production domain. Keep the existing GoDaddy/GitHub
 Pages DNS records in place until the Cloudflare zone is active and the Worker
 has been verified.
 
-For Cloudflare Builds, configure these build variables in the dashboard:
+The GitHub Actions workflow deploys to Cloudflare after every push to `main`,
+when started manually, and once each morning so approved business pages and the
+sitemap stay synchronized with Supabase. Configure these repository secrets:
 
-- `VITE_SUPABASE_URL`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_CALENDAR_FEED_URL` (optional)
+
+The Cloudflare token should be scoped to Workers Scripts Write for this account
+and Workers Routes Write plus Zone Read for the production zone. The workflow
+builds once, validates that output, deploys the same output, and then submits the
+deployed sitemap URLs to IndexNow.
 
 Use `npm run build` for a production build and `npm run preview` to serve the
 built Cloudflare output locally.
