@@ -28,7 +28,7 @@ function ArticlesIndex() {
               <p className="article-card-meta">{article.cardLabel} · {formatDate(article.datePublished)}</p>
               <h2><a href={`${article.path}/`}>{article.title}</a></h2>
               <p>{article.excerpt}</p>
-              <a className="article-card-link" href={`${article.path}/`}>Read the guide <span aria-hidden="true">→</span></a>
+              <a className="article-card-link" href={`${article.path}/`}>{article.linkLabel ?? 'Read the guide'} <span aria-hidden="true">→</span></a>
             </div>
           </article>
         ))}

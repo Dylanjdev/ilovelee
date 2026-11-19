@@ -24,6 +24,25 @@ export const pageMetadata = {
     description:
       'Read practical Lee County and Cumberland Gap travel stories, scenic-drive guides, itineraries, outdoor tips, and local trip-planning ideas.',
   },
+  '/articles/haunting-bertha-sybert-lee-county-va': {
+    title: 'The Haunting of Bertha Sybert | Lee County VA Ghost Story',
+    description:
+      'Discover the true 1938 news story behind Bouncing Bertha, the Lee County, Virginia girl whose allegedly haunted bed baffled witnesses and investigators.',
+    ogType: 'article',
+    imageUrl: 'https://discoverleeva.com/assets/boucning-bertha.webp',
+    imageAlt: 'Illustration of a 1930s Appalachian bedroom inspired by the reported Bertha Sybert bouncing bed mystery in Lee County, Virginia.',
+    imageWidth: '639',
+    imageHeight: '443',
+    ogTitle: "The Haunting of Bertha Sybert: Lee County's Bouncing Bed Mystery of 1938",
+    ogDescription:
+      'The documented 1938 mystery of a Lee County girl whose bed reportedly shook and bounced while she lay still.',
+    article: {
+      headline: "The Haunting of Bertha Sybert: Lee County's Bouncing Bed Mystery of 1938",
+      datePublished: '2026-11-19',
+      dateModified: '2026-11-19',
+      author: 'Discover Lee VA',
+    },
+  },
   '/articles/mountain-camping-virginia': {
     title: 'Mountain Camping in Virginia | Cumberland Gap Guide',
     description:

@@ -1,5 +1,29 @@
 export const articles = [
   {
+    slug: 'haunting-bertha-sybert-lee-county-va',
+    path: '/articles/haunting-bertha-sybert-lee-county-va',
+    title: "The Haunting of Bertha Sybert: Lee County's Bouncing Bed Mystery of 1938",
+    shortTitle: 'The Haunting of Bertha Sybert',
+    description:
+      'Discover the true 1938 news story behind Bouncing Bertha, the Lee County, Virginia girl whose allegedly haunted bed baffled witnesses and investigators.',
+    excerpt:
+      'In 1938, nine-year-old Bertha Sybert became the center of a Lee County mystery after witnesses said her bed shook and bounced while she lay still.',
+    heroImage: new URL('./assets/boucning-bertha.webp', import.meta.url).href,
+    heroAlt: 'Illustration of a 1930s Appalachian bedroom inspired by the reported Bertha Sybert bouncing bed mystery in Lee County, Virginia',
+    photoNote: 'An illustration inspired by the reported Bertha Sybert bouncing bed mystery—not a historical photograph.',
+    cardLabel: 'Lee County folklore',
+    linkLabel: 'Read the story',
+    kicker: 'Documented mystery · Lee County',
+    staticParagraphs: [
+      'In 1938, nine-year-old Bertha Sybert became the center of a Lee County mystery after witnesses said her bed shook and bounced while she lay still.',
+      'Period newspaper coverage, investigators, and later eyewitness recollections made “Bouncing Bertha” one of Lee County’s best-documented alleged hauntings.',
+      'The full story separates the verified historical news coverage from supernatural claims that have never been proved.',
+    ],
+    datePublished: '2026-11-19',
+    dateModified: '2026-11-19',
+    author: 'Discover Lee VA',
+  },
+  {
     slug: 'mountain-camping-virginia',
     path: '/articles/mountain-camping-virginia',
     title: 'Mountain Camping in Virginia: Where to Pitch Near Cumberland Gap',

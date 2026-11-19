@@ -37,6 +37,7 @@ const collectionPages = new Set([
 
 const breadcrumbNames = {
   '/articles': 'Travel Stories',
+  '/articles/haunting-bertha-sybert-lee-county-va': 'The Haunting of Bertha Sybert',
   '/articles/mountain-camping-virginia': 'Mountain Camping in Virginia',
   '/articles/virginia-motorcycle-trips': 'Virginia Motorcycle Trips',
   '/articles/appalachian-mountain-road-trip': 'Appalachian Mountain Road Trip',

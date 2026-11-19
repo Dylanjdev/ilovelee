@@ -19,6 +19,8 @@ import {
 const siteOrigin = 'https://discoverleeva.com'
 const eventSitemapPath = '/event-sitemap.xml'
 const eventSitemapLimit = 1000
+const legacyBooHagPath = '/articles/lee-county-boo-hag-legend'
+const berthaSybertPath = '/articles/haunting-bertha-sybert-lee-county-va/'
 
 const navigation = [
   ['/', 'Home'],
@@ -457,6 +459,10 @@ export default {
         status: 405,
         headers: { allow: 'GET, HEAD' },
       })
+    }
+
+    if (url.pathname === legacyBooHagPath || url.pathname === `${legacyBooHagPath}/`) {
+      return Response.redirect(new URL(berthaSybertPath, request.url), 301)
     }
 
     if (url.pathname === eventSitemapPath) {

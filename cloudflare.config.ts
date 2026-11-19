@@ -36,7 +36,15 @@ export default defineConfig({
     assets: {
       htmlHandling: 'force-trailing-slash',
       notFoundHandling: 'single-page-application',
-      runWorkerFirst: ['/calendar', '/calendar/', '/events', '/events/*', '/event-sitemap.xml'],
+      runWorkerFirst: [
+        '/calendar',
+        '/calendar/',
+        '/events',
+        '/events/*',
+        '/event-sitemap.xml',
+        '/articles/lee-county-boo-hag-legend',
+        '/articles/lee-county-boo-hag-legend/',
+      ],
     },
   },
 })

@@ -145,7 +145,7 @@ export function staticPageContentForRoute(route) {
     return {
       eyebrow: article.kicker,
       heading: article.title,
-      paragraphs: [
+      paragraphs: article.staticParagraphs ?? [
         article.excerpt,
         article.description,
         'Use this travel story to compare routes and build an itinerary, then follow the official resources linked in the full article for current road conditions, park information, operating hours, safety guidance, and local trip-planning details.',

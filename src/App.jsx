@@ -24,6 +24,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
 const legacyRouteRedirects = {
   '/dine-shop': '/directory',
   '/dineandshop': '/directory',
+  '/articles/lee-county-boo-hag-legend': '/articles/haunting-bertha-sybert-lee-county-va',
 }
 const routeFallbacks = {
   '/visitor-info': {
@@ -208,7 +209,12 @@ function App() {
       ? eventCanonicalUrl(embeddedEvent)
       : new URL(canonicalPath, 'https://discoverleeva.com').href
     const isBusinessDetail = Boolean(businessSlugFromPath(pathname))
-    const metadata = pageMetadata[pathname] ?? (embeddedEvent
+    const pageMetadataForPath = pageMetadata[pathname]
+    const article = articleByPath(pathname)
+    const metadata = pageMetadataForPath ? {
+      ...pageMetadataForPath,
+      ...(article ? { imageUrl: new URL(article.heroImage, 'https://discoverleeva.com').href } : {}),
+    } : (embeddedEvent
       ? eventPageMetadata(embeddedEvent)
       : isBusinessDetail ? {
       title: 'Lee County, VA Business | I Love Lee Directory',
@@ -229,12 +235,16 @@ function App() {
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
     document.querySelector('meta[property="og:type"]')?.setAttribute('content', metadata.ogType ?? 'website')
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalUrl)
-    document.querySelector('meta[property="og:title"]')?.setAttribute('content', metadata.title)
-    document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', metadata.ogTitle ?? metadata.title)
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', metadata.ogDescription ?? metadata.description)
     document.querySelector('meta[property="og:image"]')?.setAttribute('content', metadata.imageUrl ?? 'https://discoverleeva.com/ilovelee.webp')
-    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.title)
-    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.description)
+    document.querySelector('meta[property="og:image:alt"]')?.setAttribute('content', metadata.imageAlt ?? 'I Love Lee, Virginia')
+    document.querySelector('meta[property="og:image:width"]')?.setAttribute('content', metadata.imageWidth ?? '1625')
+    document.querySelector('meta[property="og:image:height"]')?.setAttribute('content', metadata.imageHeight ?? '968')
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', metadata.ogTitle ?? metadata.title)
+    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', metadata.ogDescription ?? metadata.description)
     document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', metadata.imageUrl ?? 'https://discoverleeva.com/ilovelee.webp')
+    document.querySelector('meta[name="twitter:image:alt"]')?.setAttribute('content', metadata.imageAlt ?? 'I Love Lee, Virginia')
 
     let structuredDataScript = document.getElementById(STRUCTURED_DATA_SCRIPT_ID)
     if (!structuredDataScript) {

@@ -5,6 +5,7 @@ import roadTripMarkdown from '../content/appalachian-mountain-road-trip.md?raw'
 import familyVacationsMarkdown from '../content/family-vacations-in-virginia.md?raw'
 import mountainCampingMarkdown from '../content/mountain-camping-virginia.md?raw'
 import motorcycleTripsMarkdown from '../content/virginia-motorcycle-trips.md?raw'
+import berthaSybertMarkdown from '../content/haunting-bertha-sybert-lee-county-va.md?raw'
 import './ArticlePage.css'
 
 const articleMarkdownBySlug = {
@@ -12,6 +13,7 @@ const articleMarkdownBySlug = {
   'family-vacations-in-virginia': familyVacationsMarkdown,
   'mountain-camping-virginia': mountainCampingMarkdown,
   'virginia-motorcycle-trips': motorcycleTripsMarkdown,
+  'haunting-bertha-sybert-lee-county-va': berthaSybertMarkdown,
 }
 
 const getArticleBody = (article) => articleMarkdownBySlug[article.slug]

@@ -41,6 +41,7 @@ const communityAssistanceStyles = findAsset('CommunityAssistance-', '.css')
 const businessDetailChunk = findAsset('BusinessDetailPage-', '.js')
 const businessDetailStyles = findAsset('BusinessDetailPage-', '.css')
 const routeImagePrefixes = {
+  '/articles/haunting-bertha-sybert-lee-county-va': 'boucning-bertha-',
   '/guide-to-lee-county-virginia': 'cgap-',
   '/heritage': 'wilder-',
   '/lodging': 'WolfeGilburt-',
@@ -170,10 +171,10 @@ function injectRootContent(html, content) {
   return html.replace(root, `<div id="root">${content}</div>`)
 }
 
-function injectStructuredData(html, route, business) {
+function injectStructuredData(html, route, business, metadataOverride) {
   const serializedData = business
     ? serializeBusinessStructuredData(business)
-    : serializeStructuredData(route)
+    : serializeStructuredData(route, metadataOverride)
   const structuredDataScript = `<script type="application/ld+json" id="site-structured-data">${serializedData}</script>`
   const scriptPattern = /<script type="application\/ld\+json" id="site-structured-data">[\s\S]*?<\/script>/
 
@@ -226,9 +227,22 @@ function getResourceHints(route) {
   return hints.length ? `    ${hints.join('\n    ')}\n` : ''
 }
 
-function applyPageMetadata(html, { title, description, canonicalUrl, ogType = 'website', imageUrl }) {
+function applyPageMetadata(html, {
+  title,
+  description,
+  canonicalUrl,
+  ogType = 'website',
+  imageUrl,
+  imageAlt,
+  imageWidth,
+  imageHeight,
+  ogTitle,
+  ogDescription,
+}) {
   const escapedTitle = escapeHtml(title)
   const escapedDescription = escapeHtml(description)
+  const escapedSocialTitle = escapeHtml(ogTitle || title)
+  const escapedSocialDescription = escapeHtml(ogDescription || description)
 
   return html
     .replace(/<title>[^<]*<\/title>/, `<title>${escapedTitle}</title>`)
@@ -250,27 +264,43 @@ function applyPageMetadata(html, { title, description, canonicalUrl, ogType = 'w
     )
     .replace(
       /<meta property="og:title" content="[^"]*" \/>/,
-      `<meta property="og:title" content="${escapedTitle}" />`,
+      `<meta property="og:title" content="${escapedSocialTitle}" />`,
     )
     .replace(
       /<meta\s+property="og:description"\s+content="[^"]*"\s*\/>/,
-      `<meta property="og:description" content="${escapedDescription}" />`,
+      `<meta property="og:description" content="${escapedSocialDescription}" />`,
     )
     .replace(
       /<meta name="twitter:title" content="[^"]*" \/>/,
-      `<meta name="twitter:title" content="${escapedTitle}" />`,
+      `<meta name="twitter:title" content="${escapedSocialTitle}" />`,
     )
     .replace(
       /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/>/,
-      `<meta name="twitter:description" content="${escapedDescription}" />`,
+      `<meta name="twitter:description" content="${escapedSocialDescription}" />`,
     )
     .replace(
       /<meta property="og:image" content="[^"]*" \/>/,
       `<meta property="og:image" content="${escapeHtml(imageUrl || `${siteOrigin}/ilovelee.webp`)}" />`,
     )
     .replace(
+      /<meta property="og:image:alt" content="[^"]*" \/>/,
+      `<meta property="og:image:alt" content="${escapeHtml(imageAlt || 'I Love Lee, Virginia')}" />`,
+    )
+    .replace(
+      /<meta property="og:image:width" content="[^"]*" \/>/,
+      `<meta property="og:image:width" content="${escapeHtml(imageWidth || '1625')}" />`,
+    )
+    .replace(
+      /<meta property="og:image:height" content="[^"]*" \/>/,
+      `<meta property="og:image:height" content="${escapeHtml(imageHeight || '968')}" />`,
+    )
+    .replace(
       /<meta name="twitter:image" content="[^"]*" \/>/,
       `<meta name="twitter:image" content="${escapeHtml(imageUrl || `${siteOrigin}/ilovelee.webp`)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:image:alt" content="[^"]*" \/>/,
+      `<meta name="twitter:image:alt" content="${escapeHtml(imageAlt || 'I Love Lee, Virginia')}" />`,
     )
 }
 
@@ -385,8 +415,14 @@ await Promise.all(
   routes.map(async (route) => {
     const routeFile = join(distDir, route, 'index.html')
     const canonicalUrl = `${siteOrigin}${route}/`
-    const metadata = pageMetadata[route]
-    const routeHtml = injectRootContent(applyPageMetadata(injectStructuredData(appShellHtml, route), {
+    const sourceMetadata = pageMetadata[route]
+    const socialImageAsset = route === '/articles/haunting-bertha-sybert-lee-county-va'
+      ? findAsset('boucning-bertha-', '.webp')
+      : undefined
+    const metadata = socialImageAsset
+      ? { ...sourceMetadata, imageUrl: `${siteOrigin}/assets/${socialImageAsset}` }
+      : sourceMetadata
+    const routeHtml = injectRootContent(applyPageMetadata(injectStructuredData(appShellHtml, route, undefined, metadata), {
       ...metadata,
       canonicalUrl,
     }), renderStaticLayout(route, renderStaticRouteContent(route, approvedBusinesses)))
