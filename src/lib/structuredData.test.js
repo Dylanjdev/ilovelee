@@ -146,7 +146,7 @@ test('calendar schema exposes current event pages as an ItemList', () => {
 test('article routes include Article schema in their generated JSON-LD', () => {
   const articleRoutes = Object.entries(pageMetadata).filter(([, metadata]) => metadata.article)
 
-  assert.equal(articleRoutes.length, 5)
+  assert.equal(articleRoutes.length, 6)
   articleRoutes.forEach(([route, metadata]) => {
     const data = createStructuredData(route)
     const article = nodeByType(data, 'Article')

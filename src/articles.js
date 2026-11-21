@@ -1,5 +1,29 @@
 export const articles = [
   {
+    slug: 'battle-of-jonesville-civil-war',
+    path: '/articles/battle-of-jonesville-civil-war',
+    title: 'The Battle of Jonesville: The Frozen Fight That Captured 383 Union Soldiers in Lee County, Virginia',
+    shortTitle: 'The Battle of Jonesville',
+    description:
+      'Explore the Battle of Jonesville, Virginia, on January 2–3, 1864: 383 Union soldiers captured, the Dickinson-Milbourn House, maps, markers and primary sources.',
+    excerpt:
+      'On a bitterly cold January morning in 1864, Confederate cavalry descended on Jonesville. By sunset, hundreds of Union soldiers had become prisoners.',
+    heroImage: new URL('./assets/Dickison.webp', import.meta.url).href,
+    heroAlt: 'Historic Dickinson-Milbourn House in Jonesville, Virginia, associated with the January 1864 Civil War battle',
+    photoNote: 'The Dickinson-Milbourn House, a surviving landmark associated with the January 1864 Battle of Jonesville.',
+    cardLabel: 'Civil War history',
+    linkLabel: 'Read the story',
+    kicker: 'Civil War history · Jonesville',
+    staticParagraphs: [
+      'The Battle of Jonesville, fought January 2–3, 1864, ended with the surrender of Major Charles H. Beeres’s Union command. Confederate Brigadier General William E. “Grumble” Jones reported capturing 383 Union officers and men.',
+      'The story centers on the Dickinson-Milbourn House, where Union troops sheltered in and around the brick home and its outbuildings as the fighting intensified. The historic house survives today as a private residence.',
+      'Explore the battle’s chronology, commanders, surviving landmarks, primary-source casualty figures, and the difference between documented history and local tradition before planning a respectful visit to Jonesville.',
+    ],
+    datePublished: '2026-11-21',
+    dateModified: '2026-11-21',
+    author: 'Discover Lee VA',
+  },
+  {
     slug: 'haunting-bertha-sybert-lee-county-va',
     path: '/articles/haunting-bertha-sybert-lee-county-va',
     title: "The Haunting of Bertha Sybert: Lee County's Bouncing Bed Mystery of 1938",

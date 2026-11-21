@@ -41,6 +41,7 @@ const communityAssistanceStyles = findAsset('CommunityAssistance-', '.css')
 const businessDetailChunk = findAsset('BusinessDetailPage-', '.js')
 const businessDetailStyles = findAsset('BusinessDetailPage-', '.css')
 const routeImagePrefixes = {
+  '/articles/battle-of-jonesville-civil-war': 'Dickison-',
   '/articles/haunting-bertha-sybert-lee-county-va': 'boucning-bertha-',
   '/guide-to-lee-county-virginia': 'cgap-',
   '/heritage': 'wilder-',
@@ -416,8 +417,8 @@ await Promise.all(
     const routeFile = join(distDir, route, 'index.html')
     const canonicalUrl = `${siteOrigin}${route}/`
     const sourceMetadata = pageMetadata[route]
-    const socialImageAsset = route === '/articles/haunting-bertha-sybert-lee-county-va'
-      ? findAsset('boucning-bertha-', '.webp')
+    const socialImageAsset = route.startsWith('/articles/') && routeImagePrefixes[route]
+      ? findAsset(routeImagePrefixes[route], '.webp')
       : undefined
     const metadata = socialImageAsset
       ? { ...sourceMetadata, imageUrl: `${siteOrigin}/assets/${socialImageAsset}` }

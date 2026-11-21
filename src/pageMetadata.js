@@ -24,6 +24,25 @@ export const pageMetadata = {
     description:
       'Read practical Lee County and Cumberland Gap travel stories, scenic-drive guides, itineraries, outdoor tips, and local trip-planning ideas.',
   },
+  '/articles/battle-of-jonesville-civil-war': {
+    title: 'Battle of Jonesville (1864): 383 Union Soldiers Captured | Lee County VA',
+    description:
+      'Explore the Battle of Jonesville, Virginia, on January 2–3, 1864: 383 Union soldiers captured, the Dickinson-Milbourn House, maps, markers and primary sources.',
+    ogType: 'article',
+    imageUrl: 'https://discoverleeva.com/assets/Dickison.webp',
+    imageAlt: 'Historic Dickinson-Milbourn House in Jonesville, Virginia, associated with the January 1864 Civil War battle',
+    imageWidth: '1024',
+    imageHeight: '692',
+    ogTitle: 'The Battle of Jonesville: The Frozen Fight That Captured 383 Union Soldiers',
+    ogDescription:
+      'On a bitterly cold January morning in 1864, Confederate cavalry descended on Jonesville. By sunset, hundreds of Union soldiers had become prisoners.',
+    article: {
+      headline: 'The Battle of Jonesville: The Frozen Fight That Captured 383 Union Soldiers in Lee County, Virginia',
+      datePublished: '2026-11-21',
+      dateModified: '2026-11-21',
+      author: 'Discover Lee VA',
+    },
+  },
   '/articles/haunting-bertha-sybert-lee-county-va': {
     title: 'The Haunting of Bertha Sybert | Lee County VA Ghost Story',
     description:

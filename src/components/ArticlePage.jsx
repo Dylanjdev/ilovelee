@@ -6,9 +6,11 @@ import familyVacationsMarkdown from '../content/family-vacations-in-virginia.md?
 import mountainCampingMarkdown from '../content/mountain-camping-virginia.md?raw'
 import motorcycleTripsMarkdown from '../content/virginia-motorcycle-trips.md?raw'
 import berthaSybertMarkdown from '../content/haunting-bertha-sybert-lee-county-va.md?raw'
+import battleOfJonesvilleMarkdown from '../content/battle-of-jonesville-civil-war.md?raw'
 import './ArticlePage.css'
 
 const articleMarkdownBySlug = {
+  'battle-of-jonesville-civil-war': battleOfJonesvilleMarkdown,
   'appalachian-mountain-road-trip': roadTripMarkdown,
   'family-vacations-in-virginia': familyVacationsMarkdown,
   'mountain-camping-virginia': mountainCampingMarkdown,
@@ -91,7 +93,12 @@ function ArticlePage({ article }) {
               return <a href={href} {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>
             },
             img: ({ src, alt }) => (
-              <img src={src} alt={alt || ''} loading="lazy" decoding="async" />
+              <img
+                src={src === 'Dickison.webp' ? article.heroImage : src}
+                alt={alt || ''}
+                loading="lazy"
+                decoding="async"
+              />
             ),
           }}
         >

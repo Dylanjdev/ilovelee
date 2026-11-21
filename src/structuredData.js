@@ -37,6 +37,7 @@ const collectionPages = new Set([
 
 const breadcrumbNames = {
   '/articles': 'Travel Stories',
+  '/articles/battle-of-jonesville-civil-war': 'The Battle of Jonesville',
   '/articles/haunting-bertha-sybert-lee-county-va': 'The Haunting of Bertha Sybert',
   '/articles/mountain-camping-virginia': 'Mountain Camping in Virginia',
   '/articles/virginia-motorcycle-trips': 'Virginia Motorcycle Trips',
